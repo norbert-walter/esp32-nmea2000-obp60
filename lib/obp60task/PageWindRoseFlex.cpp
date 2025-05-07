@@ -144,35 +144,15 @@ public:
 
         getdisplay().setTextColor(commonData->fgcolor);
 
-        // Show values AWA
+        // Show value 2 at position of value 1 (top left)
         getdisplay().setFont(&DSEG7Classic_BoldItalic20pt7b);
         getdisplay().setCursor(10, 65);
-        getdisplay().print(svalue1);                     // Value
-        getdisplay().setFont(&Ubuntu_Bold12pt7b);
-        getdisplay().setCursor(10, 95);
-        getdisplay().print(name1);                       // Name
-        getdisplay().setFont(&Ubuntu_Bold8pt7b);
-        getdisplay().setCursor(10, 115);
-        getdisplay().print(" ");
-        if(holdvalues == false){
-            getdisplay().print(unit1);                   // Unit
-        }
-        else{
-            getdisplay().print(unit1old);                // Unit
-        }
-
-        // Horizintal separator left
-        getdisplay().fillRect(0, 149, 60, 3, commonData->fgcolor);
-
-        // Show values AWS
-        getdisplay().setFont(&DSEG7Classic_BoldItalic20pt7b);
-        getdisplay().setCursor(10, 270);
         getdisplay().print(svalue2);                     // Value
         getdisplay().setFont(&Ubuntu_Bold12pt7b);
-        getdisplay().setCursor(10, 220);
+        getdisplay().setCursor(10, 95);
         getdisplay().print(name2);                       // Name
         getdisplay().setFont(&Ubuntu_Bold8pt7b);
-        getdisplay().setCursor(10, 190);
+        getdisplay().setCursor(10, 115);
         getdisplay().print(" ");
         if(holdvalues == false){
             getdisplay().print(unit2);                   // Unit
@@ -181,21 +161,18 @@ public:
             getdisplay().print(unit2old);                // Unit
         }
 
-        // Show values TWD
+        // Horizintal separator left
+        getdisplay().fillRect(0, 149, 60, 3, commonData->fgcolor);
+
+        // Show value 3 at bottom left
         getdisplay().setFont(&DSEG7Classic_BoldItalic20pt7b);
-        getdisplay().setCursor(295, 65);
-        if(valid3 == true){
-           // getdisplay().print(abs(value3 * 180 / PI), 0);   // Value          
-            getdisplay().print(svalue3);     // Value
-        }
-        else{
-            getdisplay().print("---");                   // Value
-        }
+        getdisplay().setCursor(10, 270);
+        getdisplay().print(svalue3);                     // Value
         getdisplay().setFont(&Ubuntu_Bold12pt7b);
-        getdisplay().setCursor(335, 95);
+        getdisplay().setCursor(10, 220);
         getdisplay().print(name3);                       // Name
         getdisplay().setFont(&Ubuntu_Bold8pt7b);
-        getdisplay().setCursor(335, 115);
+        getdisplay().setCursor(10, 190);
         getdisplay().print(" ");
         if(holdvalues == false){
             getdisplay().print(unit3);                   // Unit
@@ -204,25 +181,49 @@ public:
             getdisplay().print(unit3old);                // Unit
         }
 
-        // Horizintal separator right
-        getdisplay().fillRect(340, 149, 80, 3, commonData->fgcolor);
-
-        // Show values TWS
+        // Show value 4 at top right
         getdisplay().setFont(&DSEG7Classic_BoldItalic20pt7b);
-        getdisplay().setCursor(295, 270);
-        getdisplay().print(svalue4);                     // Value
+        getdisplay().setCursor(295, 65);
+        if(valid3 == true){
+           // getdisplay().print(abs(value3 * 180 / PI), 0);   // Value          
+            getdisplay().print(svalue4);     // Value
+        }
+        else{
+            getdisplay().print("---");                   // Value
+        }
         getdisplay().setFont(&Ubuntu_Bold12pt7b);
-        getdisplay().setCursor(335, 220);
+        getdisplay().setCursor(335, 95);
         getdisplay().print(name4);                       // Name
         getdisplay().setFont(&Ubuntu_Bold8pt7b);
-        getdisplay().setCursor(335, 190);
+        getdisplay().setCursor(335, 115);
         getdisplay().print(" ");
         if(holdvalues == false){
             getdisplay().print(unit4);                   // Unit
         }
-        else{  
+        else{
             getdisplay().print(unit4old);                // Unit
         }
+
+        // Horizintal separator right
+        getdisplay().fillRect(340, 149, 80, 3, commonData->fgcolor);
+
+        // Show value 5 at bottom right
+        getdisplay().setFont(&DSEG7Classic_BoldItalic20pt7b);
+        getdisplay().setCursor(295, 270);
+        getdisplay().print(svalue5);                     // Value
+        getdisplay().setFont(&Ubuntu_Bold12pt7b);
+        getdisplay().setCursor(335, 220);
+        getdisplay().print(name5);                       // Name
+        getdisplay().setFont(&Ubuntu_Bold8pt7b);
+        getdisplay().setCursor(335, 190);
+        getdisplay().print(" ");
+        if(holdvalues == false){
+            getdisplay().print(unit5);                   // Unit
+        }
+        else{  
+            getdisplay().print(unit5old);                // Unit
+        }
+        
 
 //*******************************************************************************************
         
@@ -323,33 +324,36 @@ public:
 
 //*******************************************************************************************
 
-        // Show values DBT
-        getdisplay().setFont(&DSEG7Classic_BoldItalic16pt7b);
-        getdisplay().setCursor(160, 200);
-        getdisplay().print(svalue5);                     // Value
-        getdisplay().setFont(&Ubuntu_Bold8pt7b);
-        getdisplay().setCursor(190, 215);
-        getdisplay().print(" ");
-        if(holdvalues == false){
-            getdisplay().print(unit5);                   // Unit
-        }
-        else{  
-            getdisplay().print(unit5old);                // Unit
-        }
-
-        // Show values STW
-        getdisplay().setFont(&DSEG7Classic_BoldItalic16pt7b);
-        getdisplay().setCursor(160, 130);
-        getdisplay().print(svalue6);                     // Value
-        getdisplay().setFont(&Ubuntu_Bold8pt7b);
-        getdisplay().setCursor(190, 90);
-        getdisplay().print(" ");
-        if(holdvalues == false){
-            getdisplay().print(unit6);                   // Unit
-        }
-        else{  
-            getdisplay().print(unit6old);                // Unit
-        }
+// Show value6, so that it does not collide with the wind pointer
+if ( cos(value1) > 0){ 
+    getdisplay().setFont(&DSEG7Classic_BoldItalic16pt7b);
+    getdisplay().setCursor(160, 200);
+    getdisplay().print(svalue6);                     // Value
+    getdisplay().setFont(&Ubuntu_Bold8pt7b);
+    getdisplay().setCursor(190, 215);
+    getdisplay().print(" ");
+    if(holdvalues == false){
+        getdisplay().print(unit6);                   // Unit
+    }
+    else{  
+        getdisplay().print(unit6old);                // Unit
+    } 
+    }
+    else{ 
+    getdisplay().setFont(&DSEG7Classic_BoldItalic16pt7b);
+    getdisplay().setCursor(160, 130);
+    getdisplay().print(svalue6);                     // Value
+    getdisplay().setFont(&Ubuntu_Bold8pt7b);
+    getdisplay().setCursor(190, 90);
+    getdisplay().print(" ");
+    if(holdvalues == false){
+        getdisplay().print(unit6);                   // Unit
+    }
+    else{  
+        getdisplay().print(unit6old);                // Unit
+    }
+    }
+    
 
         // Update display
         getdisplay().nextPage();    // Partial update (fast)
