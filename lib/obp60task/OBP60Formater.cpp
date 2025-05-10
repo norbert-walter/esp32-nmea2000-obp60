@@ -442,7 +442,7 @@ FormatedData formatValue(GwApi::BoatValue *value, CommonData &commondata){
             result.unit = "C";
         }
         else if(String(tempFormat) == "F"){
-            temp = temp - 459.67;
+            temp = (temp - 273.15) * 9 / 5 + 32;
             result.unit = "F";
         }
         else{
