@@ -2,6 +2,7 @@
 
 #include "Pagedata.h"
 #include "OBP60Extensions.h"
+#include "BoatDataCalibration.h"
 
 #include "DSEG7Classic-BoldItalic26pt7b.h"
 
@@ -61,6 +62,7 @@ class PageSixValues : public Page
                 DataName[i] = xdrDelete(bvalue->getName());
                 DataName[i] = DataName[i].substring(0, 6);                  // String length limit for value name
                 DataValue[i] = bvalue->value;                 // Value as double in SI unit
+                calibrationData.calibrateInstance(DataName[i], bvalue, logger); // Check if boat data value is to be calibrated
                 DataValid[i] = bvalue->valid;
                 DataText[i] = formatValue(bvalue, *commonData).svalue;    // Formatted value as string including unit conversion and switching decimal places
                 DataUnits[i] = formatValue(bvalue, *commonData).unit;   

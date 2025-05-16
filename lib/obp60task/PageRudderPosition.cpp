@@ -2,6 +2,7 @@
 
 #include "Pagedata.h"
 #include "OBP60Extensions.h"
+#include "BoatDataCalibration.h"
 
 class PageRudderPosition : public Page
 {
@@ -40,23 +41,24 @@ public:
         GwApi::BoatValue *bvalue1 = pageData.values[0]; // First element in list
         String name1 = bvalue1->getName().c_str();      // Value name
         name1 = name1.substring(0, 6);                  // String length limit for value name
+        calibrationData.calibrateInstance(name1, bvalue1, logger); // Check if boat data value is to be calibrated
         value1 = bvalue1->value;                        // Raw value without unit convertion
         bool valid1 = bvalue1->valid;                   // Valid information 
         String svalue1 = formatValue(bvalue1, *commonData).svalue;    // Formatted value as string including unit conversion and switching decimal places
         String unit1 = formatValue(bvalue1, *commonData).unit;        // Unit of value
+
         if(valid1 == true){
             value1old = value1;   	                    // Save old value
             unit1old = unit1;                           // Save old unit
+        } else {
+            if(simulation == true){
+                value1 = (3 + float(random(0, 50)) / 10.0)/360*2*PI;
+                unit1 = "Deg";
+            }
+            else{
+                value1 = 0;
+            }
         }
-
-        if(simulation == true){
-            value1 = (3 + float(random(0, 50)) / 10.0)/360*2*PI;
-            unit1 = "Deg";
-        }
-        else{
-            value1 = 0;
-        }
-
 
         // Optical warning by limit violation (unused)
         if(String(flashLED) == "Limit Violation"){

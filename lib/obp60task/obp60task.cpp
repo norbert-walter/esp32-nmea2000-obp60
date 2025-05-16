@@ -12,6 +12,7 @@
 #include <GxEPD2_BW.h>                  // GxEPD2 lib for b/w E-Ink displays
 #include "OBP60Extensions.h"            // Functions lib for extension board
 #include "OBP60Keypad.h"                // Functions for keypad
+#include "BoatDataCalibration.h"        // Functions lib for data instance calibration
 
 #ifdef BOARD_OBP40S3
 #include "driver/rtc_io.h"              // Needs for weakup from deep sleep
@@ -523,6 +524,9 @@ void OBP60Task(GwApi *api){
     }
     // add out of band system page (always available)
     Page *syspage = allPages.pages[0]->creator(commonData);
+
+    // Read all calibration data settings from config
+    calibrationData.readConfig(config, logger);
 
     // Display screenshot handler for HTTP request
     // http://192.168.15.1/api/user/OBP60Task/screenshot

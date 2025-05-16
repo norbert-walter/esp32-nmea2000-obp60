@@ -687,6 +687,147 @@
         }
     },
     {
+        "name": "calInstance1",
+        "label": "Calibration Data Instance 1",
+        "type": "list",
+        "default": "---",
+        "description": "Data instance for calibration",
+        "list": [
+            "---",
+            "AWA",
+            "AWS",
+            "DBT",
+            "HDM",
+            "PRPOS",
+            "RPOS",
+            "STW",
+            "TWA",
+            "TWS",
+            "TWD",
+            "WTemp"
+        ],
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        }
+    },
+    {
+        "name": "calOffset1",
+        "label": "Calibration Data Instance 1 Offset",
+        "type": "number",
+        "default": "0.00",
+        "description": "Offset for data instance 1",
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        }
+    },
+    {
+        "name": "calSlope1",
+        "label": "Calibration Data Instance 1 Slope",
+        "type": "number",
+        "default": "1.00",
+        "description": "Slope for data instance 1",
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        }
+    },
+    {
+        "name": "calInstance2",
+        "label": "Calibration Data Instance 2",
+        "type": "list",
+        "default": "---",
+        "description": "Data instance for calibration",
+        "list": [
+            "---",
+            "AWA",
+            "AWS",
+            "DBT",
+            "HDM",
+            "PRPOS",
+            "RPOS",
+            "STW",
+            "TWA",
+            "TWS",
+            "TWD",
+            "WTemp"
+        ],
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        }
+    },
+    {
+        "name": "calOffset2",
+        "label": "Calibration Data Instance 2 Offset",
+        "type": "number",
+        "default": "0.00",
+        "description": "Offset for data instance 2",
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        }
+    },
+    {
+        "name": "calSlope2",
+        "label": "Calibration Data Instance 2 Slope",
+        "type": "number",
+        "default": "1.00",
+        "description": "Slope for data instance 2",
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        }
+    },
+    {
+        "name": "calInstance3",
+        "label": "Calibration Data Instance 3",
+        "type": "list",
+        "default": "---",
+        "description": "Data instance for calibration",
+        "list": [
+            "---",
+            "AWA",
+            "AWS",
+            "DBT",
+            "HDM",
+            "PRPOS",
+            "RPOS",
+            "STW",
+            "TWA",
+            "TWS",
+            "TWD",
+            "WTemp"
+        ],
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        }
+    },
+    {
+        "name": "calOffset3",
+        "label": "Calibration Data Instance 3 Offset",
+        "type": "number",
+        "default": "0.00",
+        "description": "Offset for data instance 3",
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        }
+    },
+    {
+        "name": "calSlope3",
+        "label": "Calibration Data Instance 3 Slope",
+        "type": "number",
+        "default": "1.00",
+        "description": "Slope for data instance 3",
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        }
+    },
+{
         "name": "display",
         "label": "Display Mode",
         "type": "list",
