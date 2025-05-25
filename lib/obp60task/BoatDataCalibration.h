@@ -4,27 +4,26 @@
 #define _BOATDATACALIBRATION_H
 
 #include "Pagedata.h"
-#include "WString.h"
+#include <string>
+#include <unordered_map>
+
+#define MAX_CALIBRATION_DATA 3 // maximum number of calibration data instances
 
 typedef struct {
-    String instance; // data type/instance to be calibrated
     double offset; // calibration offset
     double slope; // calibration slope
     double smooth; // smoothing factor
     double value; // calibrated data value
     bool isCalibrated; // is data instance value calibrated?
-} CalibData;
-
-const int maxCalibrationData = 3; // maximum number of calibration data instances
+} TypeCalibData;
 
 class CalibrationDataList {
 public:
-    CalibData list[maxCalibrationData]; // list of calibration data instances
+    static std::unordered_map<std::string, TypeCalibData> calibMap; // list of calibration data instances
 
-    static void readConfig(GwConfigHandler* config, GwLog* logger);
-    static int getInstanceListNo(String instance);
-    static void calibrateInstance(String instance, GwApi::BoatValue* boatDataValue, GwLog* logger);
-    void smoothInstance(String instance, double &dataValue, GwLog* logger);
+    void readConfig(GwConfigHandler* config, GwLog* logger);
+    void calibrateInstance(GwApi::BoatValue* boatDataValue, GwLog* logger);
+    void smoothInstance(GwApi::BoatValue* boatDataValue, GwLog* logger);
 
 private:
 };

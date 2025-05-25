@@ -44,9 +44,9 @@ class PageThreeValues : public Page
         GwApi::BoatValue *bvalue1 = pageData.values[0]; // First element in list (only one value by PageOneValue)
         String name1 = xdrDelete(bvalue1->getName());   // Value name
         name1 = name1.substring(0, 6);                  // String length limit for value name
+        calibrationData.calibrateInstance(bvalue1, logger); // Check if boat data value is to be calibrated
         double value1 = bvalue1->value;                 // Value as double in SI unit
         bool valid1 = bvalue1->valid;                   // Valid information 
-        calibrationData.calibrateInstance(name1, bvalue1, logger); // Check if boat data value is to be calibrated
         String svalue1 = formatValue(bvalue1, *commonData).svalue;    // Formatted value as string including unit conversion and switching decimal places
         String unit1 = formatValue(bvalue1, *commonData).unit;        // Unit of value
 
@@ -54,9 +54,9 @@ class PageThreeValues : public Page
         GwApi::BoatValue *bvalue2 = pageData.values[1]; // Second element in list (only one value by PageOneValue)
         String name2 = xdrDelete(bvalue2->getName());   // Value name
         name2 = name2.substring(0, 6);                  // String length limit for value name
+        calibrationData.calibrateInstance(bvalue2, logger); // Check if boat data value is to be calibrated
         double value2 = bvalue2->value;                 // Value as double in SI unit
         bool valid2 = bvalue2->valid;                   // Valid information 
-        calibrationData.calibrateInstance(name2, bvalue2, logger); // Check if boat data value is to be calibrated
         String svalue2 = formatValue(bvalue2, *commonData).svalue;    // Formatted value as string including unit conversion and switching decimal places
         String unit2 = formatValue(bvalue2, *commonData).unit;        // Unit of value
 
@@ -64,9 +64,9 @@ class PageThreeValues : public Page
         GwApi::BoatValue *bvalue3 = pageData.values[2]; // Second element in list (only one value by PageOneValue)
         String name3 = xdrDelete(bvalue3->getName());      // Value name
         name3 = name3.substring(0, 6);                  // String length limit for value name
+        calibrationData.calibrateInstance(bvalue3, logger); // Check if boat data value is to be calibrated
         double value3 = bvalue3->value;                 // Value as double in SI unit
         bool valid3 = bvalue3->valid;                   // Valid information 
-        calibrationData.calibrateInstance(name3, bvalue3, logger); // Check if boat data value is to be calibrated
         String svalue3 = formatValue(bvalue3, *commonData).svalue;    // Formatted value as string including unit conversion and switching decimal places
         String unit3 = formatValue(bvalue3, *commonData).unit;        // Unit of value
 
