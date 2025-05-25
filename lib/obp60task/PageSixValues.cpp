@@ -85,9 +85,10 @@ class PageSixValues : public Page
             getdisplay().setTextColor(commonData->fgcolor);
 
             for (int i = 0; i < ( HowManyValues / 2 ); i++){
-       // Horizontal line 3 pix
-                getdisplay().fillRect(0, SixValues_y1+i*SixValues_DeltaY, 400, 3, commonData->fgcolor);
-    
+                if (i < (HowManyValues / 2) - 1) {          // Don't draw horizontal line after last line of values -> standard design
+                   // Horizontal line 3 pix
+                    getdisplay().fillRect(0, SixValues_y1+(i+1)*SixValues_DeltaY, 400, 3, commonData->fgcolor);
+                }
                 for (int j = 0; j < 2; j++){
                     int ValueIndex = i * 2 + j;
                     int x0 = SixValues_x1 + j * SixValues_DeltaX;
@@ -151,7 +152,6 @@ class PageSixValues : public Page
                    // Vertical line 3 pix
             getdisplay().fillRect(SixValues_x1+SixValues_DeltaX-8, SixValues_y1+i*SixValues_DeltaY, 3, SixValues_DeltaY, commonData->fgcolor);
             }
-            getdisplay().fillRect(0, SixValues_y1+3*SixValues_DeltaY, 400, 3, commonData->fgcolor);
     
             // Update display
             getdisplay().nextPage();    // Partial update (fast)
