@@ -15,6 +15,7 @@ no_of_fields_per_page = {
     "Battery": 0,
     "BME280": 0,
     "Clock": 0,
+    "Compass" : 0,
     "DST810": 0,
     "Fluid": 1,
     "FourValues2": 4,
@@ -24,6 +25,7 @@ no_of_fields_per_page = {
     "OneValue": 1,
     "RollPitch": 2,
     "RudderPosition": 0,
+    "SixValues" : 6,
     "Solar": 0,
     "ThreeValues": 3,
     "TwoValues": 2,
@@ -31,7 +33,6 @@ no_of_fields_per_page = {
     "WhitePage": 0,
     "WindRose": 0,
     "WindRoseFlex": 6,
-    "SixValues" : 6,
 }
 
 # No changes needed beyond this point
