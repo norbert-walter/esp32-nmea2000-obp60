@@ -79,8 +79,8 @@ void OBP60Init(GwApi *api){
     }
 
     #ifdef BOARD_OBP40S3
-    String sdcard = config->getConfigItem(config->useSDCard, true)->asString();
-    if (sdcard == "on") {
+    bool sdcard = config->getBool(config->useSDCard);
+    if (sdcard) {
         SPIClass SD_SPI = SPIClass(HSPI);
         SD_SPI.begin(SD_SPI_CLK, SD_SPI_MISO, SD_SPI_MOSI);
         if (SD.begin(SD_SPI_CS, SD_SPI, 80000000)) {

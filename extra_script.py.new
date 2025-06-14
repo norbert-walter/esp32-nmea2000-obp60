@@ -520,9 +520,19 @@ prebuild(env)
 board="PLATFORM_BOARD_%s"%env["BOARD"].replace("-","_").upper()
 print("Board=#%s#"%board)
 print("BuildFlags=%s"%(" ".join(env["BUILD_FLAGS"])))
+
+epdtype = "unknown"
+pcbvers = "unknown"
+for x in env["BUILD_FLAGS"]:
+    if x.startswith("-D HARDWARE_"):
+        pcbvers = x.split('_')[1]
+    if x.startswith("-D DISPLAY_"):
+        epdtype = x.split('_')[1]
+
 env.Append(
     LINKFLAGS=[ "-u", "custom_app_desc" ],
-    CPPDEFINES=[(board,"1")]
+    CPPDEFINES=[(board,"1"), ("BOARD", env["BOARD"]), ("EPDTYPE", epdtype),
+                ("PCBVERS", pcbvers)]
 )
 #script does not run on clean yet - maybe in the future
 env.AddPostAction("clean",cleangenerated)
