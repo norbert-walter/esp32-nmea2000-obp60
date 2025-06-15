@@ -16,7 +16,7 @@
         "description": "NTP time server. Use only one hostname or IP address",
         "category": "wifi client",
         "capabilities": {
-            "obp40": "true"
+            "obp60": "true"
         }
     },
     {
@@ -1117,6 +1117,7 @@
         "min": 1,
         "max": 10,
         "default":"10",
+        "description": "Number of visible data pages [1...10]",
         "category":"OBP60 Pages",
         "capabilities": {
             "obp60":"true"
@@ -1130,6 +1131,7 @@
         "min": 1,
         "max": 10,
         "default":"1",
+        "description": "First page number to display after device startup",
         "category":"OBP60 Pages",
         "capabilities": {
             "obp60":"true"
