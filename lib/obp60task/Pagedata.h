@@ -168,6 +168,8 @@ class PageStruct{
 // Standard format functions without overhead
 String formatDate(String fmttype, uint16_t year, uint8_t month, uint8_t day);
 String formatTime(char fmttype, uint8_t hour, uint8_t minute, uint8_t second);
+String formatLatitude(double lat);
+String formatLongitude(double lon);
 
 // Structure for formatted boat values
 typedef struct{

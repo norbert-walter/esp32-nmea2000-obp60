@@ -37,6 +37,18 @@ String formatTime(char fmttype, uint8_t hour, uint8_t minute, uint8_t second) {
     return String(buffer);
 }
 
+String formatLatitude(double lat) {
+    float degree = abs(int(lat));
+    float minute = abs((lat - int(lat)) * 60);
+    return String(degree, 0) + "\x90 " + String(minute, 4) + "' " + ((lat > 0) ? "N" : "S");
+}
+
+String formatLongitude(double lon) {
+    float degree = abs(int(lon));
+    float minute = abs((lon - int(lon)) * 60);
+    return String(degree, 0) + "\x90 " + String(minute, 4) + "' " + ((lon > 0) ? "E" : "W");
+}
+
 FormatedData formatValue(GwApi::BoatValue *value, CommonData &commondata){
     GwLog *logger = commondata.logger;
     FormatedData result;

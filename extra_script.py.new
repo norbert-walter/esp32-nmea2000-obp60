@@ -520,19 +520,23 @@ prebuild(env)
 board="PLATFORM_BOARD_%s"%env["BOARD"].replace("-","_").upper()
 print("Board=#%s#"%board)
 print("BuildFlags=%s"%(" ".join(env["BUILD_FLAGS"])))
-
-epdtype = "unknown"
-pcbvers = "unknown"
-for x in env["BUILD_FLAGS"]:
-    if x.startswith("-D HARDWARE_"):
-        pcbvers = x.split('_')[1]
-    if x.startswith("-D DISPLAY_"):
-        epdtype = x.split('_')[1]
-
 env.Append(
     LINKFLAGS=[ "-u", "custom_app_desc" ],
-    CPPDEFINES=[(board,"1"), ("BOARD", env["BOARD"]), ("EPDTYPE", epdtype),
-                ("PCBVERS", pcbvers)]
+    CPPDEFINES=[(board,"1")]
 )
 #script does not run on clean yet - maybe in the future
 env.AddPostAction("clean",cleangenerated)
+
+#look for extra task scripts and include them here
+for taskdir in userTaskDirs:
+    script = os.path.join(taskdir, "extra_task.py")
+    if os.path.isfile(script):
+        taskname = os.path.basename(os.path.normpath(taskdir))
+        print("#extra task script for '{}'".format(taskname))
+        with open(script) as fh:
+            try:
+                code = compile(fh.read(), taskname, 'exec')
+            except SyntaxError:
+                print("#ERROR: script does not compile")
+                continue
+            exec(code)
