@@ -726,7 +726,7 @@
         "condition": [
             { "calInstance1": "AWA" },
             { "calInstance1": "AWS" },
-            { "calInstance2": "COG" },
+            { "calInstance1": "COG" },
             { "calInstance1": "DBT" },
             { "calInstance1": "HDM" },
             { "calInstance1": "PRPOS" },
@@ -751,7 +751,7 @@
         "condition": [
             { "calInstance1": "AWA" },
             { "calInstance1": "AWS" },
-            { "calInstance2": "COG" },
+            { "calInstance1": "COG" },
             { "calInstance1": "DBT" },
             { "calInstance1": "HDM" },
             { "calInstance1": "PRPOS" },
@@ -779,7 +779,7 @@
         "condition": [
             { "calInstance1": "AWA" },
             { "calInstance1": "AWS" },
-            { "calInstance2": "COG" },
+            { "calInstance1": "COG" },
             { "calInstance1": "DBT" },
             { "calInstance1": "HDM" },
             { "calInstance1": "PRPOS" },
@@ -1285,8 +1285,6 @@
             "obp60":"true"
         }
     },
- 
-    
     {
         "name": "page1type",
         "label": "Type",

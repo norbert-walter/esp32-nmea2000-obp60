@@ -2,8 +2,14 @@
 
 #include "Pagedata.h"
 #include "OBP60Extensions.h"
-#include "MFD_OBP60_400x300_sw.h"       // MFD with logo
-#include "Logo_OBP_400x300_sw.h"        // OBP Logo
+
+#include "images/OBP_400x300.xbm"     // OBP Logo
+#ifdef BOARD_OBP60S3
+#include "images/OBP60_400x300.xbm"   // MFD with logo
+#endif
+#ifdef BOARD_OBP40S3
+#include "images/OBP40_400x300.xbm"   // MFD with logo
+#endif
 
 class PageWhite : public Page
 {
@@ -61,20 +67,21 @@ public:
         }
 
         if (mode == 'L') {
-            getdisplay().drawBitmap(0, 0, gImage_Logo_OBP_400x300_sw, getdisplay().width(), getdisplay().height(), commonData->fgcolor);
+            getdisplay().drawXBitmap(0, 0, OBP_400x300_bits, OBP_400x300_width, OBP_400x300_height, commonData->fgcolor);
         } else if (mode == 'M') {
-            getdisplay().drawBitmap(0, 0, gImage_MFD_OBP60_400x300_sw, getdisplay().width(), getdisplay().height(), commonData->fgcolor);
+#ifdef BOARD_OBP60S3
+            getdisplay().drawXBitmap(0, 0, OBP60_400x300_bits, OBP60_400x300_width, OBP60_400x300_height, commonData->fgcolor);
+#endif
+#ifdef BOARD_OBP40S3
+            getdisplay().drawXBitmap(0, 0, OBP40_400x300_bits, OBP40_400x300_width, OBP40_400x300_height, commonData->fgcolor);
+#endif
         }
 
-        // Update display
-        // getdisplay().nextPage();
         int ret = PAGE_UPDATE;
         if (mode == 'W') {
-            //getdisplay().hibernate();
             ret |= PAGE_HIBERNATE;
         }
         return ret;
-
     };
 };
 
