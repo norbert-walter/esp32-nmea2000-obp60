@@ -220,6 +220,17 @@
         }
     },
     {
+        "name": "calcTrueWnds",
+        "label": "Calculate True Wind",
+        "type": "boolean",
+        "default": "false",
+        "description": "If not available, calculate true wind data from appearant wind and other boat data",
+        "category": "OBP60 Settings",
+        "capabilities": {
+            "obp60": "true"
+        }
+    },
+    {
         "name": "lengthFormat",
         "label": "Length Format",
         "type": "list",
@@ -726,7 +737,7 @@
         "condition": [
             { "calInstance1": "AWA" },
             { "calInstance1": "AWS" },
-            { "calInstance2": "COG" },
+            { "calInstance1": "COG" },
             { "calInstance1": "DBT" },
             { "calInstance1": "HDM" },
             { "calInstance1": "PRPOS" },
@@ -751,7 +762,7 @@
         "condition": [
             { "calInstance1": "AWA" },
             { "calInstance1": "AWS" },
-            { "calInstance2": "COG" },
+            { "calInstance1": "COG" },
             { "calInstance1": "DBT" },
             { "calInstance1": "HDM" },
             { "calInstance1": "PRPOS" },
@@ -779,7 +790,7 @@
         "condition": [
             { "calInstance1": "AWA" },
             { "calInstance1": "AWS" },
-            { "calInstance2": "COG" },
+            { "calInstance1": "COG" },
             { "calInstance1": "DBT" },
             { "calInstance1": "HDM" },
             { "calInstance1": "PRPOS" },
@@ -1285,8 +1296,6 @@
             "obp60":"true"
         }
     },
- 
-    
     {
         "name": "page1type",
         "label": "Type",
@@ -1315,6 +1324,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -1595,6 +1605,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -1872,6 +1883,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -2146,6 +2158,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -2417,6 +2430,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -2685,6 +2699,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -2950,6 +2965,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -3212,6 +3228,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -3471,6 +3488,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -3727,6 +3745,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"

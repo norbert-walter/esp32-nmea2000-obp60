@@ -220,6 +220,17 @@
         }
     },
     {
+        "name": "calcTrueWnds",
+        "label": "Calculate True Wind",
+        "type": "boolean",
+        "default": "false",
+        "description": "If not available, calculate true wind data from appearant wind and other boat data",
+        "category": "OBP40 Settings",
+        "capabilities": {
+            "obp40": "true"
+        }
+    },
+    {
         "name": "lengthFormat",
         "label": "Length Format",
         "type": "list",
@@ -707,10 +718,12 @@
             "---",
             "AWA",
             "AWS",
+            "COG",
             "DBT",
             "HDM",
             "PRPOS",
             "RPOS",
+            "SOG",
             "STW",
             "TWA",
             "TWS",
@@ -730,8 +743,22 @@
         "description": "Offset for data instance 1",
         "category": "OBP40 Calibrations",
         "capabilities": {
-            "obp40": "true"
-        }
+            "obp40":"true"
+        },
+        "condition": [
+            { "calInstance1": "AWA" },
+            { "calInstance1": "AWS" },
+            { "calInstance1": "COG" },
+            { "calInstance1": "DBT" },
+            { "calInstance1": "HDM" },
+            { "calInstance1": "PRPOS" },
+            { "calInstance1": "RPOS" },
+            { "calInstance1": "SOG" },
+            { "calInstance1": "STW" },
+            { "calInstance1": "TWA" },
+            { "calInstance1": "TWS" },
+            { "calInstance1": "TWD" },
+            { "calInstance1": "WTemp" } ]
     },
     {
         "name": "calSlope1",
@@ -741,8 +768,22 @@
         "description": "Slope for data instance 1",
         "category": "OBP40 Calibrations",
         "capabilities": {
-            "obp40": "true"
-        }
+            "obp40":"true"
+        },
+        "condition": [
+            { "calInstance1": "AWA" },
+            { "calInstance1": "AWS" },
+            { "calInstance1": "COG" },
+            { "calInstance1": "DBT" },
+            { "calInstance1": "HDM" },
+            { "calInstance1": "PRPOS" },
+            { "calInstance1": "RPOS" },
+            { "calInstance1": "SOG" },
+            { "calInstance1": "STW" },
+            { "calInstance1": "TWA" },
+            { "calInstance1": "TWS" },
+            { "calInstance1": "TWD" },
+            { "calInstance1": "WTemp" }  ]
     },
     {
         "name": "calSmooth1",
@@ -752,11 +793,25 @@
         "check": "checkMinMax",
         "min": 0,
         "max": 10,
-        "description": "Smoothing factor for data instance 1",
+        "description": "Smoothing factor [0..10]; 0 = no smoothing",
         "category": "OBP40 Calibrations",
         "capabilities": {
-            "obp40": "true"
-        }
+            "obp40":"true"
+        },
+        "condition": [
+            { "calInstance1": "AWA" },
+            { "calInstance1": "AWS" },
+            { "calInstance1": "COG" },
+            { "calInstance1": "DBT" },
+            { "calInstance1": "HDM" },
+            { "calInstance1": "PRPOS" },
+            { "calInstance1": "RPOS" },
+            { "calInstance1": "SOG" },
+            { "calInstance1": "STW" },
+            { "calInstance1": "TWA" },
+            { "calInstance1": "TWS" },
+            { "calInstance1": "TWD" },
+            { "calInstance1": "WTemp" }  ]
     },
     {
         "name": "calInstance2",
@@ -768,10 +823,12 @@
             "---",
             "AWA",
             "AWS",
+            "COG",
             "DBT",
             "HDM",
             "PRPOS",
             "RPOS",
+            "SOG",
             "STW",
             "TWA",
             "TWS",
@@ -791,8 +848,22 @@
         "description": "Offset for data instance 2",
         "category": "OBP40 Calibrations",
         "capabilities": {
-            "obp40": "true"
-        }
+            "obp40":"true"
+        },
+        "condition": [
+            { "calInstance2": "AWA" },
+            { "calInstance2": "AWS" },
+            { "calInstance2": "COG" },
+            { "calInstance2": "DBT" },
+            { "calInstance2": "HDM" },
+            { "calInstance2": "PRPOS" },
+            { "calInstance2": "RPOS" },
+            { "calInstance2": "SOG" },
+            { "calInstance2": "STW" },
+            { "calInstance2": "TWA" },
+            { "calInstance2": "TWS" },
+            { "calInstance2": "TWD" },
+            { "calInstance2": "WTemp" } ]
     },
     {
         "name": "calSlope2",
@@ -802,8 +873,22 @@
         "description": "Slope for data instance 2",
         "category": "OBP40 Calibrations",
         "capabilities": {
-            "obp40": "true"
-        }
+            "obp40":"true"
+        },
+        "condition": [
+            { "calInstance2": "AWA" },
+            { "calInstance2": "AWS" },
+            { "calInstance2": "COG" },
+            { "calInstance2": "DBT" },
+            { "calInstance2": "HDM" },
+            { "calInstance2": "PRPOS" },
+            { "calInstance2": "RPOS" },
+            { "calInstance2": "SOG" },
+            { "calInstance2": "STW" },
+            { "calInstance2": "TWA" },
+            { "calInstance2": "TWS" },
+            { "calInstance2": "TWD" },
+            { "calInstance2": "WTemp" } ]
     },
     {
         "name": "calSmooth2",
@@ -813,11 +898,25 @@
         "check": "checkMinMax",
         "min": 0,
         "max": 10,
-        "description": "Smoothing factor for data instance 2",
+        "description": "Smoothing factor [0..10]; 0 = no smoothing",
         "category": "OBP40 Calibrations",
         "capabilities": {
-            "obp40": "true"
-        }
+            "obp40":"true"
+        },
+        "condition": [
+            { "calInstance2": "AWA" },
+            { "calInstance2": "AWS" },
+            { "calInstance2": "COG" },
+            { "calInstance2": "DBT" },
+            { "calInstance2": "HDM" },
+            { "calInstance2": "PRPOS" },
+            { "calInstance2": "RPOS" },
+            { "calInstance2": "SOG" },
+            { "calInstance2": "STW" },
+            { "calInstance2": "TWA" },
+            { "calInstance2": "TWS" },
+            { "calInstance2": "TWD" },
+            { "calInstance2": "WTemp" } ]
     },
     {
         "name": "calInstance3",
@@ -829,10 +928,12 @@
             "---",
             "AWA",
             "AWS",
+            "COG",
             "DBT",
             "HDM",
             "PRPOS",
             "RPOS",
+            "SOG",
             "STW",
             "TWA",
             "TWS",
@@ -852,8 +953,22 @@
         "description": "Offset for data instance 3",
         "category": "OBP40 Calibrations",
         "capabilities": {
-            "obp40": "true"
-        }
+            "obp40":"true"
+        },
+        "condition": [
+            { "calInstance3": "AWA" },
+            { "calInstance3": "AWS" },
+            { "calInstance3": "COG" },
+            { "calInstance3": "DBT" },
+            { "calInstance3": "HDM" },
+            { "calInstance3": "PRPOS" },
+            { "calInstance3": "RPOS" },
+            { "calInstance3": "SOG" },
+            { "calInstance3": "STW" },
+            { "calInstance3": "TWA" },
+            { "calInstance3": "TWS" },
+            { "calInstance3": "TWD" },
+            { "calInstance3": "WTemp" } ]
     },
     {
         "name": "calSlope3",
@@ -863,8 +978,22 @@
         "description": "Slope for data instance 3",
         "category": "OBP40 Calibrations",
         "capabilities": {
-            "obp40": "true"
-        }
+            "obp40":"true"
+        },
+        "condition": [
+            { "calInstance3": "AWA" },
+            { "calInstance3": "AWS" },
+            { "calInstance3": "COG" },
+            { "calInstance3": "DBT" },
+            { "calInstance3": "HDM" },
+            { "calInstance3": "PRPOS" },
+            { "calInstance3": "RPOS" },
+            { "calInstance3": "SOG" },
+            { "calInstance3": "STW" },
+            { "calInstance3": "TWA" },
+            { "calInstance3": "TWS" },
+            { "calInstance3": "TWD" },
+            { "calInstance3": "WTemp" } ]
     },
     {
         "name": "calSmooth3",
@@ -874,11 +1003,25 @@
         "check": "checkMinMax",
         "min": 0,
         "max": 10,
-        "description": "Smoothing factor for data instance 3",
+        "description": "Smoothing factor [0..10]; 0 = no smoothing",
         "category": "OBP40 Calibrations",
         "capabilities": {
-            "obp40": "true"
-        }
+            "obp40":"true"
+        },
+        "condition": [
+            { "calInstance3": "AWA" },
+            { "calInstance3": "AWS" },
+            { "calInstance3": "COG" },
+            { "calInstance3": "DBT" },
+            { "calInstance3": "HDM" },
+            { "calInstance3": "PRPOS" },
+            { "calInstance3": "RPOS" },
+            { "calInstance3": "SOG" },
+            { "calInstance3": "STW" },
+            { "calInstance3": "TWA" },
+            { "calInstance3": "TWS" },
+            { "calInstance3": "TWD" },
+            { "calInstance3": "WTemp" } ]
     },
     {
         "name": "display",
@@ -1204,6 +1347,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -1484,6 +1628,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -1761,6 +1906,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -2035,6 +2181,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -2306,6 +2453,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -2574,6 +2722,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -2839,6 +2988,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -3101,6 +3251,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -3360,6 +3511,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -3616,6 +3768,7 @@
             "Voltage",
             "WhitePage",
             "Wind",
+            "WindPlot",
             "WindRose",
             "WindRoseFlex",
             "XTETrack"
@@ -3842,3 +3995,4 @@
         ]
     }
 ]
+
