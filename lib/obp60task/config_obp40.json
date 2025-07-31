@@ -1130,6 +1130,21 @@
         }
     },
     {
+        "name": "valueprecision",
+        "label": "Display value precision",
+        "type": "list",
+        "default": "2",
+        "description": "Maximum number of decimal places to display [1|2]",
+        "list": [
+            "1",
+            "2"
+        ],
+        "category": "OBP40 Display",
+        "capabilities": {
+            "obp40":"true"
+        }
+    },
+    {
         "name": "backlight",
         "label": "Backlight Mode",
         "type": "list",
