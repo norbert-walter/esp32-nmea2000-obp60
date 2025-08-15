@@ -666,7 +666,7 @@ void OBP60Task(GwApi *api){
     double homelon = commonData.config->getString(commonData.config->homeLON).toDouble();
     bool homevalid = homelat >= -180.0 and homelat <= 180 and homelon >= -90.0 and homelon <= 90.0;
     if (homevalid) {
-        LOG_DEBUG(GwLog::LOG, "Home location set to %f : %f", homelat, homelon);
+        LOG_DEBUG(GwLog::LOG, "Home location set to lat=%f, lon=%f", homelat, homelon);
     } else {
         LOG_DEBUG(GwLog::LOG, "No valid home location found");
     }
@@ -700,6 +700,7 @@ void OBP60Task(GwApi *api){
     //####################################################################################
 
     bool systemPage = false;
+    bool systemPageNew = false;
     Page *currentPage;
     while (true){
         delay(100);     // Delay 100ms (loop time)
@@ -752,6 +753,7 @@ void OBP60Task(GwApi *api){
                     systemPage = true; // System page is out of band
                     syspage->setupKeys();
                     keyboardMessage = 0;
+                    systemPageNew = true;
                 }
                 else {
                     currentPage = pages[pageNumber].page;
@@ -950,6 +952,10 @@ void OBP60Task(GwApi *api){
                 if (systemPage) {
                     displayFooter(commonData);
                     PageData sysparams; // empty
+                    if (systemPageNew) {
+                        syspage->displayNew(sysparams);
+                        systemPageNew = false;
+                    }
                     syspage->displayPage(sysparams);
                 }
                 else {
@@ -966,10 +972,11 @@ void OBP60Task(GwApi *api){
                     }
                     else{
                         if (lastPage != pageNumber){
-                            if (hasFRAM) fram.write(FRAM_PAGE_NO, pageNumber); // remember page for device restart
+                            pages[lastPage].page->leavePage(pages[lastPage].parameters); // call page cleanup code
+                            if (hasFRAM) fram.write(FRAM_PAGE_NO, pageNumber); // remember new page for device restart
                             currentPage->setupKeys();
                             currentPage->displayNew(pages[pageNumber].parameters);
-                            lastPage=pageNumber;
+                            lastPage = pageNumber;
                         }
                         //call the page code
                         LOG_DEBUG(GwLog::DEBUG,"calling page %d",pageNumber);
