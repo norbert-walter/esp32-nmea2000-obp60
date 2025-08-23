@@ -362,28 +362,18 @@ String xdrDelete(String input){
     return input;
 }
 
-Point rotatePoint(const Point& origin, const Point& p, double angle) {
-    // rotate poind around origin by degrees
-    Point rotated;
-    double phi = angle * M_PI / 180.0;
-    double dx = p.x - origin.x;
-    double dy = p.y - origin.y;
-    rotated.x = origin.x + cos(phi) * dx - sin(phi) * dy;
-    rotated.y = origin.y + sin(phi) * dx + cos(phi) * dy;
-    return rotated;
-}
-
-std::vector<Point> rotatePoints(const Point& origin, const std::vector<Point>& pts, double angle) {
-    std::vector<Point> rotatedPoints;
-    for (const auto& p : pts) {
-         rotatedPoints.push_back(rotatePoint(origin, p, angle));
-    }
-     return rotatedPoints;
-}
-
 void fillPoly4(const std::vector<Point>& p4, uint16_t color) {
     getdisplay().fillTriangle(p4[0].x, p4[0].y, p4[1].x, p4[1].y, p4[2].x, p4[2].y, color);
     getdisplay().fillTriangle(p4[0].x, p4[0].y, p4[2].x, p4[2].y, p4[3].x, p4[3].y, color);
+}
+
+void drawPoly(const std::vector<Point>& points, uint16_t color) {
+    size_t polysize = points.size();
+    for (size_t i = 0; i < polysize - 1; i++) {
+        getdisplay().drawLine(points[i].x, points[i].y, points[i+1].x, points[i+1].y, color);
+    }
+    // close path
+    getdisplay().drawLine(points[polysize-1].x, points[polysize-1].y, points[0].x, points[0].y, color);
 }
 
 // Split string into words, whitespace separated
@@ -445,6 +435,24 @@ void drawTextRalign(int16_t x, int16_t y, String text) {
     getdisplay().getTextBounds(text, 0, 150, &x1, &y1, &w, &h);
     getdisplay().setCursor(x - w, y);
     getdisplay().print(text);
+}
+
+// Draw text inside box, normal or inverted
+void drawTextBoxed(Rect box, String text, uint16_t fg, uint16_t bg, bool inverted, bool border) {
+    if (inverted) {
+        getdisplay().fillRect(box.x, box.y, box.w, box.h, fg);
+        getdisplay().setTextColor(bg);
+    } else {
+        if (border) {
+            getdisplay().fillRect(box.x + 1, box.y + 1, box.w - 2, box.h - 2, bg);
+            getdisplay().drawRect(box.x, box.y, box.w, box.h, fg);
+        }
+        getdisplay().setTextColor(fg);
+    }
+    uint16_t border_offset = box.h / 4; // 25% of box height
+    getdisplay().setCursor(box.x + border_offset, box.y + box.h - border_offset);
+    getdisplay().print(text);
+    getdisplay().setTextColor(fg);
 }
 
 // Show a triangle for trend direction high (x, y is the left edge)

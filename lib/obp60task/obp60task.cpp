@@ -122,8 +122,8 @@ void OBP60Init(GwApi *api){
 typedef struct {
         int page0=0;
         QueueHandle_t queue;
-        GwLog* logger = NULL;
-//        GwApi* api = NULL;
+        GwLog* logger = nullptr;
+//        GwApi* api = nullptr;
         uint sensitivity = 100;
         bool use_syspage = true;
     } MyData;
@@ -266,6 +266,8 @@ void registerAllPages(PageList &list){
     list.add(&registerPageXTETrack);
     extern PageDescription registerPageFluid;
     list.add(&registerPageFluid);
+    extern PageDescription registerPageSkyView;
+    list.add(&registerPageSkyView);
 }
 
 // Undervoltage detection for shutdown display
@@ -309,7 +311,6 @@ void underVoltageError(CommonData &common) {
     getdisplay().nextPage();                // Partial update
     getdisplay().powerOff();                // Display power off
 #endif
-    // Stop system
     while (true) {
         esp_deep_sleep_start(); // Deep Sleep without wakeup. Wakeup only after power cycle (restart).
     }
@@ -324,7 +325,6 @@ inline bool underVoltageDetection(float voffset, float vslope) {
     float actVoltage = (float(analogRead(OBP_ANALOG0)) * 3.3 / 4096 + 0.17) * 20;   // Vin = 1/20 for OBP60
     float minVoltage = MIN_VOLTAGE;
 #endif
-    // TODO Why double here?
     float calVoltage = actVoltage * vslope + voffset;  // Calibration
     return (calVoltage < minVoltage);
 }
@@ -665,6 +665,7 @@ void OBP60Task(GwApi *api){
        pages[i].page=description->creator(commonData);
        pages[i].parameters.pageName=pageType;
        pages[i].parameters.pageNumber = i + 1;
+       pages[i].parameters.api = api;
        LOG_DEBUG(GwLog::DEBUG,"found page %s for number %d",pageType.c_str(),i);
        //fill in all the user defined parameters
        for (int uid=0;uid<description->userParam;uid++){
@@ -787,6 +788,7 @@ void OBP60Task(GwApi *api){
         // Undervoltage detection
         if (uvoltage == true) {
             if (underVoltageDetection(voffset, vslope)) {
+                LOG_DEBUG(GwLog::ERROR, "Undervoltage detected, shutting down!");
                 underVoltageError(commonData);
             }
         }
@@ -1032,6 +1034,7 @@ void OBP60Task(GwApi *api){
                 if (systemPage) {
                     displayFooter(commonData);
                     PageData sysparams; // empty
+                    sysparams.api = api;
                     if (systemPageNew) {
                         syspage->displayNew(sysparams);
                         systemPageNew = false;

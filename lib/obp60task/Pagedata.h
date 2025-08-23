@@ -12,6 +12,7 @@
 typedef std::vector<GwApi::BoatValue *> ValueList;
 
 typedef struct{
+  GwApi *api;
   String pageName;
   uint8_t pageNumber; // page number in sequence of visible pages
   //the values will always contain the user defined values first
@@ -99,20 +100,20 @@ typedef struct{
 } AlarmData;
 
 typedef struct{
-  GwApi::Status status;
-  GwLog *logger=NULL;
-  GwConfigHandler *config=NULL;
-  SensorData data;
-  SunData sundata;
-  TouchKeyData keydata[6];
-  BacklightData backlight;
-  AlarmData alarm;
-  GwApi::BoatValue *time=NULL;
-  GwApi::BoatValue *date=NULL;
-  uint16_t fgcolor;
-  uint16_t bgcolor;
-  bool keylock = false;
-  String powermode;
+    GwApi::Status status;
+    GwLog *logger = nullptr;
+    GwConfigHandler *config = nullptr;
+    SensorData data;
+    SunData sundata;
+    TouchKeyData keydata[6];
+    BacklightData backlight;
+    AlarmData alarm;
+    GwApi::BoatValue *time = nullptr;
+    GwApi::BoatValue *date = nullptr;
+    uint16_t fgcolor;
+    uint16_t bgcolor;
+    bool keylock = false;
+    String powermode;
 } CommonData;
 
 //a base class that all pages must inherit from
@@ -182,9 +183,9 @@ class PageDescription{
 
 class PageStruct{
     public:
-        Page *page=NULL;
+        Page *page = nullptr;
         PageData parameters;
-        PageDescription *description=NULL;
+        PageDescription *description = nullptr;
 };
 
 // Standard format functions without overhead
