@@ -47,4 +47,18 @@
     #ifdef BOARD_OBP40S3
     DECLARE_STRING_CAPABILITY(HELP_URL, "https://obp40-v1-docu.readthedocs.io/en/latest/"); // Link to help pages
     #endif
+
+    class BoatValueList{
+        public:
+        static const int MAXVALUES=100;
+        //we create a list containing all our BoatValues
+        //this is the list we later use to let the api fill all the values
+        //additionally we put the necessary values into the paga data - see below
+        GwApi::BoatValue *allBoatValues[MAXVALUES];
+        int numValues=0;
+        
+        bool addValueToList(GwApi::BoatValue *v);
+        //helper to ensure that each BoatValue is only queried once
+        GwApi::BoatValue *findValueOrCreate(String name);
+    };
 #endif

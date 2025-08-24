@@ -3,7 +3,8 @@
 #ifndef _BOATDATACALIBRATION_H
 #define _BOATDATACALIBRATION_H
 
-#include "Pagedata.h"
+// #include "Pagedata.h"
+#include "GwApi.h"
 #include <string>
 #include <unordered_map>
 
