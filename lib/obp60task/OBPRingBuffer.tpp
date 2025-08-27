@@ -35,6 +35,8 @@ RingBuffer<T>::RingBuffer(size_t size)
     , is_Full(false)
 {
     initCommon();
+
+    buffer.reserve(size);
     buffer.resize(size, MAX_VAL); // MAX_VAL indicate invalid values
 }
 
@@ -405,6 +407,7 @@ void RingBuffer<T>::resize(size_t newSize)
     is_Full = false;
 
     buffer.clear();
+    buffer.reserve(newSize);
     buffer.resize(newSize, MAX_VAL);
 }
 

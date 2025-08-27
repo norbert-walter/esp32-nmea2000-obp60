@@ -39,12 +39,13 @@ public:
     HstryBuf(){
         hstryBufList = {&twdHstry, &twsHstry, &awdHstry, &awsHstry}; // Generate history buffers of zero size
     };
+    
     HstryBuf(int size) {
         hstryBufList = {&twdHstry, &twsHstry, &awdHstry, &awsHstry}; 
-        hstryBufList.twdHstry->resize(960); // store 960 TWD values for 16 minutes history
-        hstryBufList.twsHstry->resize(960);
-        hstryBufList.awdHstry->resize(960);
-        hstryBufList.awsHstry->resize(960);
+        hstryBufList.twdHstry->resize(size); // store <size> xWD values for <size>/60 minutes history
+        hstryBufList.twsHstry->resize(size);
+        hstryBufList.awdHstry->resize(size);
+        hstryBufList.awsHstry->resize(size);
     };
     void init(BoatValueList* boatValues, GwLog *log);
     void handleHstryBuf(bool useSimuData);

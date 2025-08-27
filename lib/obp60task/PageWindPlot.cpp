@@ -83,7 +83,7 @@ class PageWindPlot : public Page {
     bool oldShowTruW = false; // remember recent user selection of wind data type
 
     int dataIntv = 1; // Update interval for wind history chart:
-                      // (1)|(2)|(3)|(4) seconds for approx. 4, 8, 12, 16 min. history chart
+                      // (1)|(2)|(3)|(4)|(8) x 240 seconds for 4, 8, 12, 16, 32 min. history chart
     bool useSimuData;
     String flashLED;
     String backlightMode;
@@ -147,6 +147,8 @@ public:
                 dataIntv = 3;
             } else if (dataIntv == 3) {
                 dataIntv = 4;
+            } else if (dataIntv == 4) {
+                dataIntv = 8;
             } else {
                 dataIntv = 1;
             }
@@ -204,7 +206,7 @@ public:
         static int xCenter; // Center of screen in x direction
         static const int yOffset = 48; // Offset for y coordinates of chart area
         static int cHeight; // height of chart area
-        static int bufSize; // History buffer size: 960 values for appox. 16 min. history chart
+        static int bufSize; // History buffer size: 1.920 values for 32 min. history chart
         static int intvBufSize; // Buffer size used for currently selected time interval
         int count; // current size of buffer
         static int numWndVals; // number of wind values available for current interval selection
@@ -285,7 +287,7 @@ public:
         currIdx = wdHstry->getLastIdx();
         numAddedBufVals = (currIdx - lastAddedIdx + bufSize) % bufSize; // Number of values added to buffer since last display
         if (dataIntv != oldDataIntv || count == 1) {
-            // new data interval selected by user
+            // new data interval selected by user; this is only x * 230 values instead of 240 seconds (4 minutes) per interval step
             intvBufSize = cHeight * dataIntv;
             numWndVals = min(count, (cHeight - 60) * dataIntv);
             bufStart = max(0, count - numWndVals);
@@ -298,6 +300,7 @@ public:
                 bufStart = max(0, bufStart - numAddedBufVals);
             }
         }
+        // LOG_DEBUG(GwLog::DEBUG,"PSRAM Size: %d kByte; free: %d Byte", ESP.getPsramSize()/1024, ESP.getFreePsram());
         LOG_DEBUG(GwLog::DEBUG, "PageWindPlot Dataset: count: %d, xWD: %.1f, xWS: %.2f, xWD_valid? %d, intvBufSize: %d, numWndVals: %d, bufStart: %d, numAddedBufVals: %d, lastIdx: %d, wind source: %s",
             count, wdHstry->getLast() / 1000.0 * radToDeg, wsHstry->getLast() / 1000.0 * 1.94384, BDataValid[0], intvBufSize, numWndVals, bufStart, numAddedBufVals, wdHstry->getLastIdx(),
             showTruW ? "True" : "App");

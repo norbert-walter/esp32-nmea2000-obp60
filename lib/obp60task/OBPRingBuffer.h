@@ -1,15 +1,48 @@
 #pragma once
 #include "GwSynchronized.h"
+#include "WString.h"
+#include "esp_heap_caps.h"
 #include <algorithm>
 #include <limits>
 #include <stdexcept>
 #include <vector>
-#include "WString.h"
+
+template <typename T>
+struct PSRAMAllocator {
+    using value_type = T;
+
+    PSRAMAllocator() = default;
+
+    template <class U>
+    constexpr PSRAMAllocator(const PSRAMAllocator<U>&) noexcept { }
+
+    T* allocate(std::size_t n)
+    {
+        void* ptr = heap_caps_malloc(n * sizeof(T), MALLOC_CAP_SPIRAM);
+        if (!ptr) {
+            return nullptr;
+        } else {
+            return static_cast<T*>(ptr);
+        }
+    }
+
+    void deallocate(T* p, std::size_t) noexcept
+    {
+        heap_caps_free(p);
+    }
+};
+
+template <class T, class U>
+bool operator==(const PSRAMAllocator<T>&, const PSRAMAllocator<U>&) { return true; }
+
+template <class T, class U>
+bool operator!=(const PSRAMAllocator<T>&, const PSRAMAllocator<U>&) { return false; }
 
 template <typename T>
 class RingBuffer {
 private:
-    std::vector<T> buffer; // THE buffer vector
+    //    std::vector<T> buffer; // THE buffer vector
+    std::vector<T, PSRAMAllocator<T>> buffer; // THE buffer vector, allocated in PSRAM
     size_t capacity;
     size_t head; // Points to the next insertion position
     size_t first; // Points to the first (oldest) valid element

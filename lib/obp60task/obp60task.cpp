@@ -431,7 +431,7 @@ void OBP60Task(GwApi *api){
     int lastPage=pageNumber;
 
     BoatValueList boatValues; //all the boat values for the api query
-    HstryBuf hstryBufList(960);  // Create ring buffers for history storage of some boat data
+    HstryBuf hstryBufList(1920);  // Create ring buffers for history storage of some boat data (1920 seconds = 32 minutes)
     WindUtils trueWind(&boatValues);  // Create helper object for true wind calculation
     //commonData.distanceformat=config->getString(xxx);
     //add all necessary data to common data
