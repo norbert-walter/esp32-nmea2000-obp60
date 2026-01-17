@@ -1,9 +1,36 @@
-// Function lib for history buffer handling, true wind calculation, and other operations on boat data
+// Function lib for boat data calibration, history buffer handling, true wind calculation, and other operations on boat data
 #pragma once
 #include "OBPRingBuffer.h"
 #include "Pagedata.h"
 #include "obp60task.h"
 #include <map>
+#include <unordered_map>
+
+// Calibration of boat data values, when user setting available
+// supported boat data types are: AWA, AWS, COG, DBS, DBT, HDM, HDT, PRPOS, RPOS, SOG, STW, TWA, TWS, TWD, WTemp
+class CalibrationData {
+private:
+    typedef struct {
+        double offset; // calibration offset
+        double slope; // calibration slope
+        double smooth; // smoothing factor
+        double value; // calibrated data value (for future use)
+        bool isCalibrated; // is data instance value calibrated? (for future use)
+    } tCalibrationData;
+
+    std::unordered_map<std::string, tCalibrationData> calibrationMap; // list of calibration data instances
+    std::unordered_map<std::string, double> lastValue; // array for last smoothed values of boat data values
+    GwLog* logger;
+
+    static constexpr int8_t MAX_CALIBRATION_DATA = 4; // maximum number of calibration data instances
+
+public:
+    CalibrationData(GwLog* log);
+    void readConfig(GwConfigHandler* config);
+    void handleCalibration(BoatValueList* boatValues); // Handle calibrationMap and calibrate all boat data values
+    bool calibrateInstance(GwApi::BoatValue* boatDataValue); // Calibrate single boat data value
+    bool smoothInstance(GwApi::BoatValue* boatDataValue); // Smooth single boat data value
+};
 
 class HstryBuf {
 private:

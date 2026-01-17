@@ -3,7 +3,6 @@
 #include "Pagedata.h"
 #include "OBP60Extensions.h"
 #include "N2kMessages.h"
-#include "BoatDataCalibration.h"
 
 #define front_width 120
 #define front_height 162
@@ -324,7 +323,6 @@ public:
         }
         String name1 = bvalue1->getName().c_str();      // Value name
         name1 = name1.substring(0, 6);                  // String length limit for value name
-        calibrationData.calibrateInstance(bvalue1, logger); // Check if boat data value is to be calibrated
         double value1 = bvalue1->value;                 // Value as double in SI unit
         // bool valid1 = bvalue1->valid;                   // Valid information
         String svalue1 = formatValue(bvalue1, *commonData).svalue;    // Formatted value as string including unit conversion and switching decimal places
@@ -338,7 +336,6 @@ public:
         }
         String name2 = bvalue2->getName().c_str();      // Value name
         name2 = name2.substring(0, 6);                  // String length limit for value name
-        calibrationData.calibrateInstance(bvalue2, logger); // Check if boat data value is to be calibrated
         double value2 = bvalue2->value;                 // Value as double in SI unit
         // bool valid2 = bvalue2->valid;                   // Valid information
         if (simulation) {
