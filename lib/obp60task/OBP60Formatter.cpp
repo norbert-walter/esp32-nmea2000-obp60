@@ -92,6 +92,8 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
     const char* fmt_dec_1;
     const char* fmt_dec_10;
     const char* fmt_dec_100;
+    double limit_dec_10;
+    double limit_dec_100;
     if (precision == "1") {
 	//
 	//All values are displayed using a DSEG7* font. In this font, ' ' is a very short space, and '.' takes up no space at all. 
@@ -100,10 +102,14 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
         fmt_dec_1 = "!%1.1f";  //insert a blank digit and then display a two-digit number
         fmt_dec_10 = "!%2.0f"; //insert a blank digit and then display a two-digit number
         fmt_dec_100 = "%3.0f"; //dispay a three digit number
+	limit_dec_10=9.95; // use fmt_dec_1 below this number to avoid formatting 9.96 as 10.0 instead of 10
+	limit_dec_100=99.5; 
     } else {
         fmt_dec_1 = "%3.2f";
         fmt_dec_10 = "%3.1f";
         fmt_dec_100 = "%3.0f";
+	limit_dec_10=9.995;
+	limit_dec_100=99.95;
     }
 
 //    LOG_DEBUG(GwLog::DEBUG,"formatValue init: getFormat: %s date->value: %f time->value: %f", value->getFormat(), commondata.date->value, commondata.time->value);
@@ -243,10 +249,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             speed = speed;              // Unit conversion form m/s to m/s
             result.unit = "m/s";
         }
-        if(speed < 10) {
+        if(speed < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, speed);
         }
-        else if (speed < 100) {
+        else if (speed < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, speed);
         }
         else {
@@ -323,11 +329,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             snprintf(buffer, bsize, "%2.0f", speed);
         }
         else{
-            speed = std::round(speed * 100) / 100;    // in rare cases, speed could be 9.9999 kn instead of 10.0 kn
-            if (speed < 10.0){
+            if (speed < limit_dec_10){
                 snprintf(buffer, bsize, fmt_dec_1, speed);
             }
-            else if (speed < 100.0){
+            else if (speed < limit_dec_100){
                 snprintf(buffer, bsize, fmt_dec_10, speed);
             }
             else {
@@ -378,10 +383,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
         if (dop > 99.9){
             dop = 99.9;
         }
-        if (dop < 10){
+        if (dop < limit_dec_10){
             snprintf(buffer, bsize, fmt_dec_1, dop);
         }
-        else if(dop < 100){
+        else if(dop < limit_dec_100){
             snprintf(buffer, bsize, fmt_dec_10, dop);
         }
         else {
@@ -457,10 +462,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
         else{
             result.unit = "m";
         }
-        if (depth < 10) {
+        if (depth < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, depth);
         }
-        else if (depth < 100){
+        else if (depth < limit_dec_100){
             snprintf(buffer, bsize, fmt_dec_10, depth);
         }
         else {
@@ -523,10 +528,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
         else{
             result.unit = "K";
         }
-        if(temp < 10) {
+        if(temp < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, temp);
         }
-        else if (temp < 100) {
+        else if (temp < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, temp);
         }
         else {
@@ -556,10 +561,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
         else {
             result.unit = "m";
         }
-        if (distance < 10){
+        if (distance < limit_dec_10){
             snprintf(buffer, bsize, fmt_dec_1, distance);
         }
-        else if (distance < 100){
+        else if (distance < limit_dec_100){
             snprintf(buffer, bsize, fmt_dec_10, distance);
         }
         else {
@@ -613,7 +618,7 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 12 + float(random(0, 30)) / 10.0;
             voltage = rawvalue;
         }
-        if (voltage < 10) {
+        if (voltage < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, voltage);
         }
         else {
@@ -633,10 +638,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 8.2 + float(random(0, 50)) / 10.0;
             current = rawvalue;
         }
-        if (current < 10) {
+        if (current < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, current);
         }
-        else if(current < 100) {
+        else if(current < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, current);
         }
         else {
@@ -656,10 +661,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 21.8 + float(random(0, 50)) / 10.0;
             temperature = rawvalue;
         }
-        if (temperature < 10) {
+        if (temperature < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, temperature);
         }
-        else if (temperature < 100) {
+        else if (temperature < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, temperature);
         }
         else {
@@ -679,10 +684,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 21.8 + float(random(0, 50)) / 10.0;
             temperature = rawvalue;
         }
-        if (temperature < 10) {
+        if (temperature < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, temperature);
         }
-        else if(temperature < 100) {
+        else if(temperature < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, temperature);
         }
         else {
@@ -702,10 +707,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 41.3 + float(random(0, 50)) / 10.0;
             humidity = rawvalue;
         }
-        if (humidity < 10) {
+        if (humidity < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, humidity);
         }
-        else if(humidity < 100) {
+        else if(humidity < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, humidity);
         }
         else {
@@ -725,13 +730,13 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 85.8 + float(random(0, 50)) / 10.0;
             volume = rawvalue;
         }
-        if (volume < 10) {
+        if (volume < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, volume);
         }
-        else if (volume < 100) {
+        else if (volume < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, volume);
         }
-        else if (volume >= 100) {
+        else if (volume >= limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_100, volume);
         }
         result.unit = "%";
@@ -748,10 +753,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 75.2 + float(random(0, 50)) / 10.0;
             volume = rawvalue;
         }
-        if (volume < 10) {
+        if (volume < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, volume);
         }
-        else if (volume < 100) {
+        else if (volume < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, volume);
         }
         else {
@@ -771,10 +776,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 7.5 + float(random(0, 20)) / 10.0;
             flow = rawvalue;
         }
-        if (flow < 10) {
+        if (flow < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, flow);
         }
-        else if (flow < 100) {
+        else if (flow < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, flow);
         }
         else {
@@ -794,10 +799,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 18.5 + float(random(0, 20)) / 10.0;
             generic = rawvalue;
         }
-        if (generic < 10) {
+        if (generic < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, generic);
         }
-        else if (generic < 100) {
+        else if (generic < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, generic);
         }
         else {
@@ -817,10 +822,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 55.3 + float(random(0, 20)) / 10.0;
             dplace = rawvalue;
         }
-        if (dplace < 10) {
+        if (dplace < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, dplace);
         }
-        else if (dplace < 100) {
+        else if (dplace < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, dplace);
         }
         else {
@@ -861,10 +866,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 2505 + random(0, 20);
             rpm = rawvalue;
         }
-        if (rpm < 10) {
+        if (rpm < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, rpm);
         }
-        else if (rpm < 100) {
+        else if (rpm < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, rpm);
         }
         else {
@@ -877,10 +882,10 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
     // Default format
     //########################################################
     else {
-        if (value->value < 10) {
+        if (value->value < limit_dec_10) {
             snprintf(buffer, bsize, fmt_dec_1, value->value);
         }
-        else if (value->value < 100) {
+        else if (value->value < limit_dec_100) {
             snprintf(buffer, bsize, fmt_dec_10, value->value);
         }
         else {
