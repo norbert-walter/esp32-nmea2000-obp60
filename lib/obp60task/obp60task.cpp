@@ -12,7 +12,6 @@
 #include <GxEPD2_BW.h>                  // GxEPD2 lib for b/w E-Ink displays
 #include "OBP60Extensions.h"            // Functions lib for extension board
 #include "OBP60Keypad.h"                // Functions for keypad
-#include "BoatDataCalibration.h"        // Functions lib for data instance calibration
 #include "OBPDataOperations.h"          // Functions lib for data operations such as true wind calculation
 
 #ifdef BOARD_OBP40S3
@@ -147,7 +146,6 @@ void keyboardTask(void *param){
     vTaskDelete(NULL);
 }
 
-// Scorgan: moved class declaration to header file <obp60task.h> to make class available to other functions
 // --- Class BoatValueList --------------
 bool BoatValueList::addValueToList(GwApi::BoatValue *v){
     for (int i=0;i<numValues;i++){
@@ -172,7 +170,7 @@ GwApi::BoatValue *BoatValueList::findValueOrCreate(String name){
     addValueToList(rt);
     return rt;
 }
-// --- Class BoatValueList --------------
+// --- End Class BoatValueList --------------
 
 //we want to have a list that has all our page definitions
 //this way each page can easily be added here
@@ -435,10 +433,9 @@ void OBP60Task(GwApi *api){
     int lastPage=-1; // initialize with an impiossible value, so we can detect wether we are during startup and no page has been displayed yet
 
     BoatValueList boatValues; //all the boat values for the api query
-    HstryBuffers hstryBufList(1920, &boatValues, logger);  // Create empty list of boat data history buffers
+    HstryBuffers hstryBufferList(1920, &boatValues, logger);  // Create empty list of boat data history buffers (1.920 values = seconds = 32 min.)
     WindUtils trueWind(&boatValues, logger);  // Create helper object for true wind calculation
-    //commonData.distanceformat=config->getString(xxx);
-    //add all necessary data to common data
+    CalibrationData calibrationDataList(logger); // all boat data types which are supposed to be calibrated
 
     //fill the page data from config
     numPages=config->getInt(config->visiblePages,1);
@@ -480,26 +477,25 @@ void OBP60Task(GwApi *api){
             pages[i].parameters.values.push_back(value); 
        }
 
-       // Read the specified boat data type of relevant pages and create a history buffer for each type
+       // Read the specified boat data types of relevant pages and create a history buffer for each type
        if (pages[i].parameters.pageName == "OneValue" || pages[i].parameters.pageName == "TwoValues" || pages[i].parameters.pageName == "WindPlot") {
            for (auto pVal : pages[i].parameters.values) {
-                hstryBufList.addBuffer(pVal->getName());
+                hstryBufferList.addBuffer(pVal->getName());
            }
        }
        // Add list of history buffers to page parameters
-       pages[i].parameters.hstryBuffers = &hstryBufList;
+       pages[i].parameters.hstryBuffers = &hstryBufferList;
 
     }
 
     // add out of band system page (always available)
     Page *syspage = allPages.pages[0]->creator(commonData);
 
-    // Check user settings for true wind calculation
+    // Read user settings from config file
     bool calcTrueWnds = api->getConfig()->getBool(api->getConfig()->calcTrueWnds, false);
     bool useSimuData = api->getConfig()->getBool(api->getConfig()->useSimuData, false);
-
-    // Read all calibration data settings from config
-    calibrationData.readConfig(config, logger);
+    // Read user calibration data settings from config file
+    calibrationDataList.readConfig(config);
 
     // Display screenshot handler for HTTP request
     // http://192.168.15.1/api/user/OBP60Task/screenshot
@@ -814,10 +810,10 @@ void OBP60Task(GwApi *api){
                 api->getStatus(commonData.status);
 
                 if (calcTrueWnds) {
-                    trueWind.addWinds();
+                    trueWind.addWinds(); // calculate true wind data from apparent wind values
                 }
-                // Handle history buffers for certain boat data for windplot page and other usage
-                 hstryBufList.handleHstryBufs(useSimuData, commonData);
+                calibrationDataList.handleCalibration(&boatValues); // Process calibration for all boat data in <calibrationDataList>
+                hstryBufferList.handleHstryBufs(useSimuData, commonData); // Handle history buffers for certain boat data for windplot page and other usage
 
                 // Clear display
                 // getdisplay().fillRect(0, 0, getdisplay().width(), getdisplay().height(), commonData.bgcolor);

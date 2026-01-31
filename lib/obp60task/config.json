@@ -763,8 +763,10 @@
             "AWA",
             "AWS",
             "COG",
+            "DBS",
             "DBT",
             "HDM",
+            "HDT",
             "PRPOS",
             "RPOS",
             "SOG",
@@ -790,7 +792,7 @@
             "obp60":"true"
         },
         "condition": [
-            { "calInstance1": ["AWA", "AWS", "COG", "DBT", "HDM", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
+            { "calInstance1": ["AWA", "AWS", "COG", "DBS", "DBT", "HDM", "HDT", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
         ]
     },
     {
@@ -798,13 +800,13 @@
         "label": "Data Instance 1 Calibration Slope",
         "type": "number",
         "default": "1.00",
-        "description": "Slope for data instance 1",
+        "description": "Slope for data instance 1; Default: 1(!)",
         "category": "OBP60 Calibrations",
         "capabilities": {
             "obp60":"true"
         },
         "condition": [
-            { "calInstance1": ["AWA", "AWS", "COG", "DBT", "HDM", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
+            { "calInstance1": ["AWA", "AWS", "COG", "DBS", "DBT", "HDM", "HDT", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
         ]
     },
     {
@@ -821,7 +823,7 @@
             "obp60":"true"
         },
         "condition": [
-            { "calInstance1": ["AWA", "AWS", "COG", "DBT", "HDM", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
+            { "calInstance1": ["AWA", "AWS", "COG", "DBS", "DBT", "HDM", "HDT", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
         ]
     },
     {
@@ -835,8 +837,10 @@
             "AWA",
             "AWS",
             "COG",
+            "DBS",
             "DBT",
             "HDM",
+            "HDT",
             "PRPOS",
             "RPOS",
             "SOG",
@@ -862,7 +866,7 @@
             "obp60":"true"
         },
         "condition": [
-            { "calInstance2": ["AWA", "AWS", "COG", "DBT", "HDM", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
+            { "calInstance2": ["AWA", "AWS", "COG", "DBS", "DBT", "HDM", "HDT", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
         ]
     },
     {
@@ -870,13 +874,13 @@
         "label": "Data Instance 2 Calibration Slope",
         "type": "number",
         "default": "1.00",
-        "description": "Slope for data instance 2",
+        "description": "Slope for data instance 2; Default: 1(!)",
         "category": "OBP60 Calibrations",
         "capabilities": {
             "obp60":"true"
         },
         "condition": [
-            { "calInstance2": ["AWA", "AWS", "COG", "DBT", "HDM", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
+            { "calInstance2": ["AWA", "AWS", "COG", "DBS", "DBT", "HDM", "HDT", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
         ]
     },
     {
@@ -893,7 +897,7 @@
             "obp60":"true"
         },
         "condition": [
-            { "calInstance2": ["AWA", "AWS", "COG", "DBT", "HDM", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
+            { "calInstance2": ["AWA", "AWS", "COG", "DBS", "DBT", "HDM", "HDT", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
         ]
     },
     {
@@ -907,8 +911,10 @@
             "AWA",
             "AWS",
             "COG",
+            "DBS",
             "DBT",
             "HDM",
+            "HDT",
             "PRPOS",
             "RPOS",
             "SOG",
@@ -934,7 +940,7 @@
             "obp60":"true"
         },
         "condition": [
-            { "calInstance3": ["AWA", "AWS", "COG", "DBT", "HDM", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
+            { "calInstance3": ["AWA", "AWS", "COG", "DBS", "DBT", "HDM", "HDT", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
         ]
     },
     {
@@ -942,13 +948,13 @@
         "label": "Data Instance 3 Calibration Slope",
         "type": "number",
         "default": "1.00",
-        "description": "Slope for data instance 3",
+        "description": "Slope for data instance 3; Default: 1(!)",
         "category": "OBP60 Calibrations",
         "capabilities": {
             "obp60":"true"
         },
         "condition": [
-            { "calInstance3": ["AWA", "AWS", "COG", "DBT", "HDM", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
+            { "calInstance3": ["AWA", "AWS", "COG", "DBS", "DBT", "HDM", "HDT", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
         ]
     },
     {
@@ -965,7 +971,81 @@
             "obp60":"true"
         },
         "condition": [
-            { "calInstance3": ["AWA", "AWS", "COG", "DBT", "HDM", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
+            { "calInstance3": ["AWA", "AWS", "COG", "DBS", "DBT", "HDM", "HDT", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
+        ]
+    },
+    {
+        "name": "calInstance4",
+        "label": "Calibration Data Instance 4",
+        "type": "list",
+        "default": "---",
+        "description": "Data instance for calibration",
+        "list": [
+            "---",
+            "AWA",
+            "AWS",
+            "COG",
+            "DBS",
+            "DBT",
+            "HDM",
+            "HDT",
+            "PRPOS",
+            "RPOS",
+            "SOG",
+            "STW",
+            "TWA",
+            "TWS",
+            "TWD",
+            "WTemp"
+        ],
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        }
+    },
+    {
+        "name": "calOffset4",
+        "label": "Data Instance 4 Calibration Offset",
+        "type": "number",
+        "default": "0.00",
+        "description": "Offset for data instance 4",
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        },
+        "condition": [
+            { "calInstance4": ["AWA", "AWS", "COG", "DBS", "DBT", "HDM", "HDT", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
+        ]
+    },
+    {
+        "name": "calSlope4",
+        "label": "Data Instance 4 Calibration Slope",
+        "type": "number",
+        "default": "1.00",
+        "description": "Slope for data instance 3; Default: 1(!)",
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        },
+        "condition": [
+            { "calInstance4": ["AWA", "AWS", "COG", "DBS", "DBT", "HDM", "HDT", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
+        ]
+    },
+    {
+        "name": "calSmooth4",
+        "label": "Data Instance 4 Smoothing",
+        "type": "number",
+        "default": "0",
+        "check": "checkMinMax",
+        "min": 0,
+        "max": 10,
+        "description": "Smoothing factor [0..10]; 0 = no smoothing",
+        "category": "OBP60 Calibrations",
+        "capabilities": {
+            "obp60":"true"
+        },
+        "condition": [
+            { "calInstance4": ["AWA", "AWS", "COG", "DBS", "DBT", "HDM", "HDT", "PRPOS", "RPOS", "SOG", "STW", "TWA", "TWS", "TWD", "WTemp" ] }
         ]
     },
     {

@@ -2,7 +2,6 @@
 
 #include "Pagedata.h"
 #include "OBP60Extensions.h"
-#include "BoatDataCalibration.h"
 #include "OBPDataOperations.h"
 #include "OBPcharts.h"
 
@@ -88,7 +87,6 @@ private:
 
         String name1 = xdrDelete(bValue1->getName()); // Value name
         name1 = name1.substring(0, 6); // String length limit for value name
-        calibrationData.calibrateInstance(bValue1, logger); // Check if boat data value is to be calibrated
         double value1 = bValue1->value; // Value as double in SI unit
         bool valid1 = bValue1->valid; // Valid information
         String sValue1 = formatValue(bValue1, *commonData).svalue; // Formatted value as string including unit conversion and switching decimal places

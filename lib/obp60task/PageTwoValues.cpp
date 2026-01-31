@@ -2,7 +2,6 @@
 
 #include "Pagedata.h"
 #include "OBP60Extensions.h"
-#include "BoatDataCalibration.h"
 #include "OBPDataOperations.h"
 #include "OBPcharts.h"
 
@@ -69,7 +68,6 @@ private:
             int yOffset = YOFFSET * i;
             String name = xdrDelete(bValue[i]->getName()); // Value name
             name = name.substring(0, 6); // String length limit for value name
-            calibrationData.calibrateInstance(bValue[i], logger); // Check if boat data value is to be calibrated
             double value = bValue[i]->value; // Value as double in SI unit
             bool valid = bValue[i]->valid; // Valid information
             String sValue = formatValue(bValue[i], *commonData).svalue; // Formatted value as string including unit conversion and switching decimal places

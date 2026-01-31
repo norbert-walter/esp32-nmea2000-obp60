@@ -2,7 +2,6 @@
 
 #include "Pagedata.h"
 #include "OBP60Extensions.h"
-#include "BoatDataCalibration.h"
 
 class PageRudderPosition : public Page
 {
@@ -41,7 +40,6 @@ public:
         GwApi::BoatValue *bvalue1 = pageData.values[0]; // First element in list
         String name1 = bvalue1->getName().c_str();      // Value name
         name1 = name1.substring(0, 6);                  // String length limit for value name
-        calibrationData.calibrateInstance(bvalue1, logger); // Check if boat data value is to be calibrated
         value1 = bvalue1->value;                        // Raw value without unit convertion
         bool valid1 = bvalue1->valid;                   // Valid information 
         String svalue1 = formatValue(bvalue1, *commonData).svalue;    // Formatted value as string including unit conversion and switching decimal places
