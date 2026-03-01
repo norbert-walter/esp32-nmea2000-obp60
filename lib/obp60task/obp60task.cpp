@@ -451,7 +451,7 @@ void OBP60Task(GwApi *api){
 #endif
     LOG_DEBUG(GwLog::LOG,"...done");
 
-    int lastPage=-1; // initialize with an impiossible value, so we can detect wether we are during startup and no page has been displayed yet
+    int lastPage=-1; // initialize with an impossible value, so we can detect wether we are during startup and no page has been displayed yet
 
     BoatValueList boatValues; //all the boat values for the api query
     HstryBuffers hstryBufferList(1920, &boatValues, logger);  // Create empty list of boat data history buffers (1.920 values = seconds = 32 min.)
@@ -751,7 +751,7 @@ void OBP60Task(GwApi *api){
                 else{
                     getdisplay().fillScreen(commonData.fgcolor); // Clear display
                     #ifdef DISPLAY_GDEY042T81
-                        getdisplay().hibernate();                  // Set display in hybenate mode
+                        getdisplay().hibernate();                  // Set display in hibenate mode
                         getdisplay().init(115200, true, 2, false); // Init for Waveshare boards with "clever" reset circuit, 2ms reset pulse
                     #else
                         getdisplay().init(115200);               // Init for normal displays
@@ -783,7 +783,7 @@ void OBP60Task(GwApi *api){
                 else{
                     getdisplay().fillScreen(commonData.fgcolor); // Clear display
                     #ifdef DISPLAY_GDEY042T81
-                        getdisplay().hibernate();                  // Set display in hybenate mode
+                        getdisplay().hibernate();                  // Set display in hibernate mode
                         getdisplay().init(115200, true, 2, false); // Init for Waveshare boards with "clever" reset circuit, 2ms reset pulse
                     #else
                         getdisplay().init(115200);               // Init for normal displays
@@ -812,7 +812,7 @@ void OBP60Task(GwApi *api){
                 else{
                     getdisplay().fillScreen(commonData.fgcolor); // Clear display
                     #ifdef DISPLAY_GDEY042T81
-                        getdisplay().hibernate();                  // Set display in hybenate mode
+                        getdisplay().hibernate();                  // Set display in hibernate mode
                         getdisplay().init(115200, true, 2, false); // Init for Waveshare boards with "clever" reset circuit, 2ms reset pulse
                     #else
                         getdisplay().init(115200);               // Init for normal displays
