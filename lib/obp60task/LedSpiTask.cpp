@@ -14,6 +14,30 @@ https://controllerstech.com/ws2812-leds-using-spi/
 
 */
 
+String Color::toHex() {
+    char hexColor[8];
+    sprintf(hexColor, "#%02X%02X%02X", r, g, b);
+    return String(hexColor);
+}
+
+String Color::toName() {
+    static std::map<int, String> const names = {
+        {0xff0000, "Red"},
+        {0x00ff00, "Green"},
+        {0x0000ff, "Blue",},
+        {0xff9900, "Orange"},
+        {0xffff00, "Yellow"},
+        {0x3366ff, "Aqua"},
+        {0xff0066, "Violet"},
+        {0xffffff, "White"}
+    };
+    int color = (r << 16) + (g << 8) + b;
+    auto it = names.find(color);
+    if (it == names.end()) {
+        return toHex();
+    }
+    return it->second;
+}
 
 static uint8_t mulcolor(uint8_t f1, uint8_t f2){
     uint16_t rt=f1;

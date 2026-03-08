@@ -10,7 +10,7 @@ class Color{
     uint8_t g;
     uint8_t b;
     Color():r(0),g(0),b(0){}
-    Color(uint8_t cr, uint8_t cg,uint8_t cb):
+    Color(uint8_t cr, uint8_t cg, uint8_t cb):
         b(cb),g(cg),r(cr){}
     Color(const Color &o):b(o.b),g(o.g),r(o.r){}
     bool equal(const Color &o) const{
@@ -22,6 +22,8 @@ class Color{
     bool operator != (const Color &other) const{
         return ! equal(other);
     }
+    String toHex();
+    String toName();
 };
 
 static Color COLOR_GREEN=Color(0,255,0);
