@@ -1,0 +1,115 @@
+diff --git a/lib/boatData/GwBoatData.cpp b/lib/boatData/GwBoatData.cpp
+index 424ebe4..b717097 100644
+--- a/lib/boatData/GwBoatData.cpp
++++ b/lib/boatData/GwBoatData.cpp
+@@ -6,6 +6,7 @@
+ #define GWTYPE_UINT32 2
+ #define GWTYPE_UINT16 3
+ #define GWTYPE_INT16 4
++#define GWTYPE_STRING 5
+ #define GWTYPE_USER 100
+ 
+ class GwBoatItemTypes
+@@ -15,6 +16,7 @@ public:
+     static int getType(const uint16_t &x) { return GWTYPE_UINT16; }
+     static int getType(const int16_t &x) { return GWTYPE_INT16; }
+     static int getType(const double &x) { return GWTYPE_DOUBLE; }
++    static int getType(const String &x) { return GWTYPE_STRING; }
+     static int getType(const GwSatInfoList &x) { return GWTYPE_USER + 1; }
+ };
+ 
+@@ -252,6 +254,10 @@ static void writeToString(GwTextWriter *writer, const int16_t &value)
+ {
+     writer->writeInteger(value);
+ }
++static void writeToString(GwTextWriter *writer, String value)
++{
++    writer->writeString(value.c_str());
++}
+ static void writeToString(GwTextWriter *writer, GwSatInfoList &value)
+ {
+     writer->writeInteger(value.getNumSats());
+@@ -288,6 +294,8 @@ template class GwBoatItem<double>;
+ template class GwBoatItem<uint32_t>;
+ template class GwBoatItem<uint16_t>;
+ template class GwBoatItem<int16_t>;
++template class GwBoatItem<String>;
++
+ void GwSatInfoList::houseKeeping(unsigned long ts)
+ {
+     if (ts == 0)
+diff --git a/lib/boatData/GwBoatData.h b/lib/boatData/GwBoatData.h
+index ae50b3f..5b32f70 100644
+--- a/lib/boatData/GwBoatData.h
++++ b/lib/boatData/GwBoatData.h
+@@ -58,6 +58,7 @@ class GwBoatItemBase{
+         GWSC(formatRot);
+         GWSC(formatDate);
+         GWSC(formatTime);
++        GWSC(formatName);
+     protected:
+         int type;
+         unsigned long lastSet=0;
+@@ -92,6 +93,7 @@ class GwBoatItemBase{
+         virtual int getLastSource(){return lastUpdateSource;}
+         virtual void refresh(unsigned long ts=0){uls(ts);}
+         virtual double getDoubleValue()=0;
++        virtual String getStringValue()=0;
+         String getName(){return name;}
+         const String & getFormat() const{return format;}
+         virtual void setInvalidTime(GwConfigHandler *cfg);
+@@ -120,7 +122,19 @@ template<class T> class GwBoatItem : public GwBoatItemBase{
+             if (! isValid(millis())) return defaultv;
+             return data;
+         }
+-        virtual double getDoubleValue(){return (double)data;}
++        virtual double getDoubleValue(){
++            if constexpr (std::is_same<T, String>::value) {
++                return 0.0;
++                // TODO any better ideas?
++                // perhaps return std::numeric_limits<double>::quiet_NaN();
++            } else {
++                return (double)data;
++            }
++        }
++        virtual String getStringValue(){
++            return (String)data;
++        }
++
+         virtual void fillString();
+         virtual void toJsonDoc(GwJsonDocument *doc, unsigned long minTime);
+         virtual int getLastSource(){return lastUpdateSource;}
+@@ -235,6 +249,7 @@ class GwBoatData{
+     GWBOATDATA(double,XTE,formatXte) // cross track error
+     GWBOATDATA(double,WPLat,formatLatitude) // waypoint latitude
+     GWBOATDATA(double,WPLon,formatLongitude) // waypoint longitude
++    GWBOATDATA(String,WPName,formatName) // waypoint name
+     GWSPECBOATDATA(GwBoatDataSatList,SatInfo,GwSatInfoList::toType,formatFixed0);
+     public:
+         GwBoatData(GwLog *logger, GwConfigHandler *cfg);
+diff --git a/lib/nmea0183ton2k/NMEA0183DataToN2K.cpp b/lib/nmea0183ton2k/NMEA0183DataToN2K.cpp
+index 6989570..238af38 100644
+--- a/lib/nmea0183ton2k/NMEA0183DataToN2K.cpp
++++ b/lib/nmea0183ton2k/NMEA0183DataToN2K.cpp
+@@ -355,6 +355,7 @@ private:
+             AppendN2kRouteWPInfo(n2kMsg,destinationId,rmb.destID,rmb.latitude,rmb.longitude);
+             send(n2kMsg,msg.sourceId);
+             }
++        boatData->WPName->update(String(rmb.destID), msg.sourceId);
+     }
+     void convertRMC(const SNMEA0183Msg &msg)
+     {
+diff --git a/platformio.ini b/platformio.ini
+index b738131..e131a6e 100644
+--- a/platformio.ini
++++ b/platformio.ini
+@@ -68,6 +68,9 @@ lib_ldf_mode = off
+ monitor_speed = 115200
+ build_flags = 
+ 	-D PIO_ENV_BUILD=$PIOENV
++	-std=gnu++17
++build_unflags =
++	-std=gnu++11
+ 
+ [sensors]
+ ; collect the libraries for sensors here

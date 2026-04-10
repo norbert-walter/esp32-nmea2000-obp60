@@ -689,7 +689,7 @@
         "type": "string",
         "default": "text1",
         "description": "Button name",
-        "category": "OBP60 IO-Modul1",
+        "category": "OBP40 IO-Module1",
         "capabilities": {
             "obp40":"true"
         }
@@ -700,7 +700,7 @@
         "type": "string",
         "default": "text2",
         "description": "Button name",
-        "category": "OBP60 IO-Modul1",
+        "category": "OBP40 IO-Module1",
         "capabilities": {
             "obp40":"true"
         }
@@ -711,7 +711,7 @@
         "type": "string",
         "default": "text3",
         "description": "Button name",
-        "category": "OBP60 IO-Modul1",
+        "category": "OBP40 IO-Module1",
         "capabilities": {
             "obp40":"true"
         }
@@ -722,7 +722,7 @@
         "type": "string",
         "default": "text4",
         "description": "Button name",
-        "category": "OBP60 IO-Modul1",
+        "category": "OBP40 IO-Module1",
         "capabilities": {
             "obp40":"true"
         }
@@ -733,7 +733,7 @@
         "type": "string",
         "default": "text5",
         "description": "Button name",
-        "category": "OBP60 IO-Modul1",
+        "category": "OBP40 IO-Module1",
         "capabilities": {
             "obp40":"true"
         }

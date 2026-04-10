@@ -21,11 +21,11 @@ index 88f9690..9663a65 100644
          virtual ~GwApi(){}
  };
 diff --git a/lib/obp60task/OBP60Extensions.h b/lib/obp60task/OBP60Extensions.h
-index 604c356..2fe4496 100644
+index 9e2bc99..34eaeac 100644
 --- a/lib/obp60task/OBP60Extensions.h
 +++ b/lib/obp60task/OBP60Extensions.h
-@@ -15,6 +15,9 @@
- #define MOUNT_POINT "/sdcard"
+@@ -29,6 +29,9 @@
+     #define MOUNT_POINT "/sdcard"
  #endif
  
 +// Patches to apply to gateway code
@@ -61,7 +61,7 @@ index 1b007f8..90087d4 100644
 \ No newline at end of file
 +}
 diff --git a/src/main.cpp b/src/main.cpp
-index 44c715f..fdb0366 100644
+index 95d5d1e..01fcd32 100644
 --- a/src/main.cpp
 +++ b/src/main.cpp
 @@ -100,6 +100,7 @@ GwLog logger(LOGLEVEL,NULL);
