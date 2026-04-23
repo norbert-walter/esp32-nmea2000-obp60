@@ -143,29 +143,33 @@ void GwWifi::loop(){
 
                 delay(300);
 
-                if (acquireMutex()){
-                    esp_err_t stopErr=esp_wifi_stop();
-                    releaseMutex();
-                    if (stopErr != ESP_OK){
-                        LOG_DEBUG(GwLog::ERROR,"GwWifi: esp_wifi_stop failed: %d",(int)stopErr);
+                if (!apActive) {
+                    if (acquireMutex()){
+                        esp_err_t stopErr=esp_wifi_stop();
+                        releaseMutex();
+                        if (stopErr != ESP_OK){
+                            LOG_DEBUG(GwLog::ERROR,"GwWifi: esp_wifi_stop failed: %d",(int)stopErr);
+                        }
                     }
-                }
-                else{
-                    LOG_DEBUG(GwLog::ERROR,"GwWifi: mutex timeout in loop (stop)");
-                }
-
-                delay(100);
-
-                if (acquireMutex()){
-                    esp_err_t startErr=esp_wifi_start();
-                    releaseMutex();
-                    if (startErr != ESP_OK){
-                        LOG_DEBUG(GwLog::ERROR,"GwWifi: esp_wifi_start failed: %d",(int)startErr);
+                    else{
+                        LOG_DEBUG(GwLog::ERROR,"GwWifi: mutex timeout in loop (stop)");
                     }
+
+                    delay(100);
+
+                    if (acquireMutex()){
+                        esp_err_t startErr=esp_wifi_start();
+                        releaseMutex();
+                        if (startErr != ESP_OK){
+                            LOG_DEBUG(GwLog::ERROR,"GwWifi: esp_wifi_start failed: %d",(int)startErr);
+                        }
+                        connectInternal();
+                    }
+                    else{
+                        LOG_DEBUG(GwLog::ERROR,"GwWifi: mutex timeout in loop (start)");
+                    }
+                } else {
                     connectInternal();
-                }
-                else{
-                    LOG_DEBUG(GwLog::ERROR,"GwWifi: mutex timeout in loop (start)");
                 }
             }
         }
