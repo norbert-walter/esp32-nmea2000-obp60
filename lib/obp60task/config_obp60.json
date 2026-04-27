@@ -76,6 +76,44 @@
         }
     },
     {
+        "name": "leeKStd",
+        "label": "Leeway Coefficient",
+        "type": "list",
+        "default": "---",
+        "description": "Boat coefficient K for leeway",
+        "list": [
+            "---",
+            "Racer [2]",
+            "Multihull Draggerboard [4]",
+            "Performance Cruiser [6]",
+            "Family Cruiser [9]",
+            "Heavy Displacement [13]",
+            "Multihull Fixed Keel [16]",
+            "Individual value"
+        ],
+        "category": "OBP60 Settings",
+        "capabilities": {
+            "obp60": "true"
+        }
+    },
+    {
+        "name": "leeK",
+        "label": "Leeway Coefficient",
+        "type": "number",
+        "default": "0.00",
+        "check": "checkMinMax",
+        "min": 0,
+        "max": 20,
+        "description": "Boat coefficient K for leeway - individual setting [0..20]",
+        "category": "OBP60 Settings",
+        "capabilities": {
+            "obp60":"true"
+        },
+        "condition": [
+            { "leeKStd": ["Individual value"] }
+        ]
+    },
+    {
         "name": "fuelTank",
         "label": "Fuel Tank [l]",
         "type": "number",
@@ -1512,6 +1550,7 @@
             "Battery2",
             "Clock",
             "Compass",
+            "Current",
             "DigitalOut",
             "DST810",
             "Fluid",
@@ -1567,6 +1606,7 @@
         },
         "condition": {
             "page1type": [
+                "Current",
                 "Fluid",
                 "FourValues",
                 "FourValues2",
@@ -1813,6 +1853,7 @@
             "Battery2",
             "Clock",
             "Compass",
+            "Current",
             "DigitalOut",
             "DST810",
             "Fluid",
@@ -1867,6 +1908,7 @@
         },
         "condition": {
             "page2type": [
+                "Current",
                 "Fluid",
                 "FourValues",
                 "FourValues2",
@@ -2106,6 +2148,7 @@
             "Battery2",
             "Clock",
             "Compass",
+            "Current",
             "DigitalOut",
             "DST810",
             "Fluid",
@@ -2159,6 +2202,7 @@
         },
         "condition": {
             "page3type": [
+                "Current",
                 "Fluid",
                 "FourValues",
                 "FourValues2",
@@ -2391,6 +2435,7 @@
             "Battery2",
             "Clock",
             "Compass",
+            "Current",
             "DigitalOut",
             "DST810",
             "Fluid",
@@ -2443,6 +2488,7 @@
         },
         "condition": {
             "page4type": [
+                "Current",
                 "Fluid",
                 "FourValues",
                 "FourValues2",
@@ -2668,6 +2714,7 @@
             "Battery2",
             "Clock",
             "Compass",
+            "Current",
             "DigitalOut",
             "DST810",
             "Fluid",
@@ -2719,6 +2766,7 @@
         },
         "condition": {
             "page5type": [
+                "Current",
                 "Fluid",
                 "FourValues",
                 "FourValues2",
@@ -2937,6 +2985,7 @@
             "Battery2",
             "Clock",
             "Compass",
+            "Current",
             "DigitalOut",
             "DST810",
             "Fluid",
@@ -2987,6 +3036,7 @@
         },
         "condition": {
             "page6type": [
+                "Current",
                 "Fluid",
                 "FourValues",
                 "FourValues2",
@@ -3198,6 +3248,7 @@
             "Battery2",
             "Clock",
             "Compass",
+            "Current",
             "DigitalOut",
             "DST810",
             "Fluid",
@@ -3247,6 +3298,7 @@
         },
         "condition": {
             "page7type": [
+                "Current",
                 "Fluid",
                 "FourValues",
                 "FourValues2",
@@ -3451,6 +3503,7 @@
             "Battery2",
             "Clock",
             "Compass",
+            "Current",
             "DigitalOut",
             "DST810",
             "Fluid",
@@ -3499,6 +3552,7 @@
         },
         "condition": {
             "page8type": [
+                "Current",
                 "Fluid",
                 "FourValues",
                 "FourValues2",
@@ -3696,6 +3750,7 @@
             "Battery2",
             "Clock",
             "Compass",
+            "Current",
             "DigitalOut",
             "DST810",
             "Fluid",
@@ -3743,6 +3798,7 @@
         },
         "condition": {
             "page9type": [
+                "Current",
                 "Fluid",
                 "FourValues",
                 "FourValues2",
@@ -3933,6 +3989,7 @@
             "Battery2",
             "Clock",
             "Compass",
+            "Current",
             "DigitalOut",
             "DST810",
             "Fluid",
@@ -3979,6 +4036,7 @@
         },
         "condition": {
             "page10type": [
+                "Current",
                 "Fluid",
                 "FourValues",
                 "FourValues2",

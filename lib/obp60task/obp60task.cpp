@@ -233,6 +233,8 @@ void registerAllPages(PageList &list){
     list.add(&registerPageClock);
     extern PageDescription registerPageCompass;
     list.add(&registerPageCompass);
+    extern PageDescription registerPageCurrent;
+    list.add(&registerPageCurrent);
     extern PageDescription registerPageWhite;
     list.add(&registerPageWhite);
     extern PageDescription registerPageBME280;
