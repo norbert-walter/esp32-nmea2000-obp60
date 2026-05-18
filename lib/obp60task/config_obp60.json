@@ -276,7 +276,7 @@
         "description": "Print chart lines with a smoothed gradient",
         "category": "OBP60 Settings",
         "capabilities": {
-            "obp40": "true"
+            "obp60": "true"
         }
     },
     {
