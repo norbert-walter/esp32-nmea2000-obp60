@@ -40,7 +40,7 @@ protected:
 
     static constexpr int8_t MIN_FREE_VALUES = 60; // free 60 values when chart line reaches chart end
     static constexpr int8_t THRESHOLD_NO_DATA = 3; // max. seconds of invalid values in a row
-    static constexpr int8_t VALAXIS_STEP = 60; // pixels between two chart value axis labels
+    static constexpr int8_t VALAXIS_SLOTS = 5; // no. of value axis labels
 
     static constexpr bool NO_SIMUDATA = true; // switch off simulation feature of <formatValue> function
 
