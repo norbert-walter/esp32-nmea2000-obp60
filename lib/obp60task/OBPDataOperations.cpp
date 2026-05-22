@@ -467,10 +467,6 @@ bool WindUtils::handleWinds(bool calcWinds)
     double twd, tws, twa, awd;
     bool twCalculated = false;
 
-    if (!calcWinds) { // don't calculate anything if true wind calculation has not been set in configuration
-        return twCalculated;
-    }
-
     double awaVal = awaBVal->valid ? awaBVal->value : DBL_MAX;
     double awsVal = awsBVal->valid ? awsBVal->value : DBL_MAX;
     double cogVal = cogBVal->valid ? cogBVal->value : DBL_MAX;
@@ -502,6 +498,10 @@ bool WindUtils::handleWinds(bool calcWinds)
             awdBVal->valid = false;
             return false;
         }
+    }
+
+    if (!calcWinds) { // don't calculate true winds if not set in configuration
+        return twCalculated;
     }
 
     // calculate TWD if not existing and if possible
