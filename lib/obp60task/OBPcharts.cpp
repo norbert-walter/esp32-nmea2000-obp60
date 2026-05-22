@@ -8,8 +8,8 @@
 std::map<String, ChartProps> Chart::dfltChrtDta = {
     { "formatWind", { 60.0 * DEG_TO_RAD, 10.0 * DEG_TO_RAD } }, // default wind range 60 degrees
     { "formatCourse", { 60.0 * DEG_TO_RAD, 10.0 * DEG_TO_RAD } }, // default course range 60 degrees
-    { "formatKnots", { 2.57, 2.57 } }, // default speed range in m/s
-    { "formatDepth", { 15.0, 5.0 } }, // default depth range in m
+    { "formatKnots", { 2.572, 2.572 } }, // default speed range in m/s
+    { "formatDepth", { 10.0, 5.0 } }, // default depth range in m
     { "kelvinToC", { 20.0, 5.0 } } // default temp range in °C/K
 };
 
@@ -82,8 +82,8 @@ Chart::Chart(RingBuffer<uint16_t>& dataBuf, double dfltRng, CommonData& common, 
         dfltRng = dfltChrtDta[dbFormat].range;
         rngStep = dfltChrtDta[dbFormat].step;
     } else {
-        dfltRng = 16.0;
-        rngStep = 4.0;
+        dfltRng = 10.0;
+        rngStep = 5.0;
     }
 
     // Initialize chart range values
