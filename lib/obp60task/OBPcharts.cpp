@@ -3,10 +3,12 @@
 #include "OBPDataOperations.h"
 #include "OBPRingBuffer.h"
 
+// Default ranges for various boat data types: 1st value default range, 2nd value step for range adjustment
+// should be multiple of 4 for full integer chart labels w/o decimals
 std::map<String, ChartProps> Chart::dfltChrtDta = {
-    { "formatWind", { 60.0 * DEG_TO_RAD, 10.0 * DEG_TO_RAD } }, // default course range 60 degrees
+    { "formatWind", { 60.0 * DEG_TO_RAD, 10.0 * DEG_TO_RAD } }, // default wind range 60 degrees
     { "formatCourse", { 60.0 * DEG_TO_RAD, 10.0 * DEG_TO_RAD } }, // default course range 60 degrees
-    { "formatKnots", { 2.57, 2.57 } }, // default speed range in m/s
+    { "formatKnots", { 2.572, 2.572 } }, // default speed range in m/s
     { "formatDepth", { 10.0, 5.0 } }, // default depth range in m
     { "kelvinToC", { 20.0, 5.0 } } // default temp range in °C/K
 };
@@ -80,7 +82,7 @@ Chart::Chart(RingBuffer<uint16_t>& dataBuf, double dfltRng, CommonData& common, 
         dfltRng = dfltChrtDta[dbFormat].range;
         rngStep = dfltChrtDta[dbFormat].step;
     } else {
-        dfltRng = 15.0;
+        dfltRng = 10.0;
         rngStep = 5.0;
     }
 
@@ -538,6 +540,7 @@ void Chart::drawChrtValAxis(const char chrtDir, const int8_t chrtSz, bool prntNa
             }
 
             // for any other data formats print multiple axis value lines on full charts
+            font = &Ubuntu_Bold10pt8b;
             prntHorizChartMultiValueAxisLabel(font);
             return;
 
@@ -561,12 +564,9 @@ void Chart::drawChrtValAxis(const char chrtDir, const int8_t chrtSz, bool prntNa
             font = &Ubuntu_Bold12pt8b;
             getdisplay().setFont(font); // use larger font
             drawTextRalign(cRoot.x + (valAxis * 0.42), cRoot.y - 2, dbName.substring(0, 6)); // print buffer data name (max. size 5 characters)
-
-        } else {
-
-            font = &Ubuntu_Bold10pt8b;
         }
 
+        font = &Ubuntu_Bold10pt8b;
         prntVerticChartThreeValueAxisLabel(font);
     }
 }
@@ -689,13 +689,13 @@ void Chart::prntHorizChartThreeValueAxisLabel(const GFXfont* font)
     double axLabel;
     double chrtMin, chrtMid, chrtMax;
     int xOffset, yOffset; // offset for text position of x axis label for different font sizes
-    String sVal;
+    char sVal[11];
 
     if (font == &Ubuntu_Bold10pt8b) {
-        xOffset = 39;
+        xOffset = 32;
         yOffset = 16;
     } else if (font == &Ubuntu_Bold12pt8b) {
-        xOffset = 51;
+        xOffset = 42;
         yOffset = 18;
     }
     getdisplay().setFont(font);
@@ -704,26 +704,23 @@ void Chart::prntHorizChartThreeValueAxisLabel(const GFXfont* font)
     chrtMin = convertValue(this->chrtMin, dbName, dbFormat, *commonData);
     chrtMid = convertValue(this->chrtMid, dbName, dbFormat, *commonData);
     chrtMax = convertValue(this->chrtMax, dbName, dbFormat, *commonData);
-    chrtMin = std::round(chrtMin * 100.0) / 100.0;
-    chrtMid = std::round(chrtMid * 100.0) / 100.0;
-    chrtMax = std::round(chrtMax * 100.0) / 100.0;
 
     // print top axis label
     axLabel = (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE) ? chrtMax : chrtMin;
-    sVal = formatLabel(axLabel);
+    snprintf(sVal, sizeof(sVal), "%3.0f", axLabel);
     getdisplay().fillRect(cRoot.x, cRoot.y + 2, xOffset + 3, yOffset, bgColor); // Clear small area to remove potential chart lines
     drawTextRalign(cRoot.x + xOffset, cRoot.y + yOffset, sVal); // range value
 
     // print mid axis label
     axLabel = chrtMid;
-    sVal = formatLabel(axLabel);
+    formatLabel(axLabel).toCharArray(sVal, 11); // print mid label with 1 decimal for small numbers, if required
     getdisplay().fillRect(cRoot.x, cRoot.y + (valAxis / 2) - 8, xOffset + 3, 16, bgColor); // Clear small area to remove potential chart lines
     drawTextRalign(cRoot.x + xOffset, cRoot.y + (valAxis / 2) + 6, sVal); // range value
     getdisplay().drawLine(cRoot.x + xOffset + 3, cRoot.y + (valAxis / 2), cRoot.x + timAxis, cRoot.y + (valAxis / 2), fgColor);
 
     // print bottom axis label
     axLabel = (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE) ? chrtMin : chrtMax;
-    sVal = formatLabel(axLabel);
+    snprintf(sVal, sizeof(sVal), "%3.0f", axLabel);
     getdisplay().fillRect(cRoot.x, cRoot.y + valAxis - 14, xOffset + 3, 15, bgColor); // Clear small area to remove potential chart lines
     drawTextRalign(cRoot.x + xOffset, cRoot.y + valAxis, sVal); // range value
     getdisplay().drawLine(cRoot.x + xOffset + 3, cRoot.y + valAxis, cRoot.x + timAxis, cRoot.y + valAxis, fgColor);
@@ -733,45 +730,43 @@ void Chart::prntHorizChartThreeValueAxisLabel(const GFXfont* font)
 void Chart::prntHorizChartMultiValueAxisLabel(const GFXfont* font)
 {
     double chrtMin, chrtMax, chrtRng;
-    double axSlots, axIntv, axLabel;
+//    int axSlots = 5; // no. of axis labels
     int xOffset; // offset for text position of x axis label for different font sizes
-    String sVal;
+    char sVal[11];
 
     if (font == &Ubuntu_Bold10pt8b) {
-        xOffset = 38;
+        xOffset = 32;
     } else if (font == &Ubuntu_Bold12pt8b) {
-        xOffset = 50;
+        xOffset = 42;
     }
     getdisplay().setFont(font);
 
     chrtMin = convertValue(this->chrtMin, dbName, dbFormat, *commonData);
-    // chrtMin = std::floor(chrtMin / rngStep) * rngStep;
-    chrtMin = std::round(chrtMin * 100.0) / 100.0;
     chrtMax = convertValue(this->chrtMax, dbName, dbFormat, *commonData);
-    // chrtMax = std::ceil(chrtMax / rngStep) * rngStep;
-    chrtMax = std::round(chrtMax * 100.0) / 100.0;
-    chrtRng = std::round((chrtMax - chrtMin) * 100) / 100;
+    chrtRng = chrtMax - chrtMin;
 
-    axSlots = valAxis / static_cast<double>(VALAXIS_STEP); // number of axis labels (and we want to have a double calculation, no integer)
-    axIntv = chrtRng / axSlots;
-    axLabel = chrtMin + axIntv;
-    // LOG_DEBUG(GwLog::DEBUG, "Chart::printHorizMultiValueAxisLabel: chrtRng: %.2f, th-chrtRng: %.2f, axSlots: %.2f, axIntv: %.2f, axLabel: %.2f, chrtMin: %.2f, chrtMid: %.2f, chrtMax: %.2f", chrtRng, this->chrtRng, axSlots, axIntv, axLabel, this->chrtMin, chrtMid, chrtMax);
+    double axIntv = chrtRng / VALAXIS_SLOTS; // axis label interval
+    double axLabel = chrtMin + axIntv; // current axis label
+    double chrtScale = double(valAxis) / chrtRng; // Chart scale: pixels per value step
+    double valAxisStep = axIntv * chrtScale; // pixel per axis label interval
+
+    // LOG_DEBUG(GwLog::DEBUG, "Chart::printHorizMultiValueAxisLabel: chrtRng: %.2f, th-chrtRng: %.2f, axSlots: %.2f, axIntv: %.2f, axLabel: %.2f, chrtMin: %.2f, chrtMid: %.2f, chrtMax: %.2f", chrtRng, this->chrtRng, VALAXIS_SLOTS, axIntv, axLabel, this->chrtMin, chrtMid, chrtMax);
 
     int loopStrt, loopEnd, loopStp;
     if (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE || chrtDataFmt == OTHER) {
-        // High value at top
-        loopStrt = valAxis - VALAXIS_STEP;
-        loopEnd = VALAXIS_STEP / 2;
-        loopStp = VALAXIS_STEP * -1;
+        loopStrt = valAxis - valAxisStep;
+        loopEnd = valAxisStep / 2;
+        loopStp = valAxisStep * -1;
     } else {
         // Low value at top
-        loopStrt = VALAXIS_STEP;
-        loopEnd = valAxis - (VALAXIS_STEP / 2);
-        loopStp = VALAXIS_STEP;
+        loopStrt = valAxisStep;
+        loopEnd = valAxis - (valAxisStep / 2);
+        loopStp = valAxisStep;
     }
 
     for (int j = loopStrt; (loopStp > 0) ? (j < loopEnd) : (j > loopEnd); j += loopStp) {
-        sVal = formatLabel(axLabel);
+        // sVal = formatLabel(axLabel);
+        snprintf(sVal, sizeof(sVal), "%3.0f", axLabel);
         getdisplay().fillRect(cRoot.x, cRoot.y + j - 11, xOffset + 3, 21, bgColor); // Clear small area to remove potential chart lines
         drawTextRalign(cRoot.x + xOffset, cRoot.y + j + 7, sVal); // range value
         getdisplay().drawLine(cRoot.x + xOffset + 3, cRoot.y + j, cRoot.x + timAxis, cRoot.y + j, fgColor);
@@ -821,16 +816,15 @@ String Chart::formatLabel(const double& label)
         // Format 3 numbers with prefix zero
         snprintf(sVal, sizeof(sVal), "%03.0f", label);
 
-    } else if (dbFormat == "formatRot") {
+/*    } else if (dbFormat == "formatRot") {
         if (label > -10 && label < 10) {
             snprintf(sVal, sizeof(sVal), "%3.2f", label);
         } else {
             snprintf(sVal, sizeof(sVal), "%3.0f", label);
-        }
-    }
+        } */
 
-    else {
-        if (label < 10) {
+    } else {
+        if (label < 9.95) {
             snprintf(sVal, sizeof(sVal), "%3.1f", label);
         } else {
             snprintf(sVal, sizeof(sVal), "%3.0f", label);
