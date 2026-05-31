@@ -68,6 +68,7 @@ public:
     bool getMetaData(String& name, String& format);
     String getName() const; // Get buffer name
     String getFormat() const; // Get buffer data format
+    int getUpdFreq() const; // Get buffer update frequency
     void add(const double& value); // Add a new value to  buffer
     double get(size_t index) const; // Get value at specific position (0-based index from oldest to newest)
     double getFirst() const; // Get the first (oldest) value in buffer

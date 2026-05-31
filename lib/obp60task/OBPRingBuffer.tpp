@@ -106,6 +106,13 @@ String RingBuffer<T>::getFormat() const
     return dataFmt;
 }
 
+// Get buffer update frequency
+template <typename T>
+int RingBuffer<T>::getUpdFreq() const
+{
+    return updFreq;
+}
+
 // Add a new value to buffer
 template <typename T>
 void RingBuffer<T>::add(const double& value)

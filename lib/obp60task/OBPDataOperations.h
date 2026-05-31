@@ -39,6 +39,7 @@ private:
     String boatDataName;
     double hstryMin;
     double hstryMax;
+    unsigned long bufUpdateTime;
     GwApi::BoatValue* boatValue;
     GwLog* logger;
 
@@ -62,17 +63,19 @@ private:
     struct HistoryParams {
         int hstryUpdFreq; // update frequency of history buffer (documentation only)
         int mltplr; // specifies actual value precision being storable:
-                    // [10000: 0 - 6.5535 | 1000: 0 - 65.535 | 100: 0 - 650.35 | 10: 0 - 6503.5
+                    // [10000: 0 - 6.5535 | 1000: 0 - 65.535 | 100: 0 - 655.35 | 10: 0 - 6553.5 | 1: 0 - 65535]
         double bufferMinVal; // minimum valid data value
         double bufferMaxVal; // maximum valid data value
         String format; // format of data type
     };
 
     // Define buffer parameters for supported boat data type
+    // Structure: name, frequency, multiplier, minVal, maxVal, format
     std::map<String, HistoryParams> bufferParams = {
         { "AWA", { 1000, 10000, 0.0, M_TWOPI, "formatWind" } },
         { "AWD", { 1000, 10000, 0.0, M_TWOPI, "formatCourse" } },
         { "AWS", { 1000, 1000, 0.0, 65.0, "formatKnots" } },
+        { "BARO", {60000, 10, 0.0, 6553, "formatXdr:P:B"}},
         { "COG", { 1000, 10000, 0.0, M_TWOPI, "formatCourse" } },
         { "DBS", { 1000, 100, 0.0, 650.0, "formatDepth" } },
         { "DBT", { 1000, 100, 0.0, 650.0, "formatDepth" } },

@@ -228,6 +228,7 @@ void HstryBuf::init(const String& format, int updFreq, int mltplr, double minVal
     hstryBuf.setMetaData(boatDataName, format, updFreq, mltplr, minVal, maxVal);
     hstryMin = minVal;
     hstryMax = maxVal;
+    bufUpdateTime = 0;
     if (!boatValue->valid) {
         boatValue->setFormat(format);
         boatValue->value = std::numeric_limits<double>::max(); // mark current value invalid
@@ -244,19 +245,24 @@ void HstryBuf::add(double value)
 
 void HstryBuf::handle(bool useSimuData, CommonData& common)
 {
-    std::unique_ptr<GwApi::BoatValue> tmpBVal; // Temp variable to get formatted and converted data value from OBP60Formatter
+    if (millis() >= (bufUpdateTime + hstryBuf.getUpdFreq())) {
+        bufUpdateTime = millis();
+        LOG_DEBUG(GwLog::DEBUG, "HstryBuf::handle:  name: %s, frequency: %d, bufUpdateTime: %d, value: %.3f", hstryBuf.getName(), hstryBuf.getUpdFreq(), bufUpdateTime, boatValue->value);
 
-    if (boatValue->valid) {
-        add(boatValue->value);
-    } else if (useSimuData) { // add simulated value to history buffer
-        tmpBVal = std::unique_ptr<GwApi::BoatValue>(new GwApi::BoatValue(boatDataName)); // create temporary boat value for retrieval of simulation value
-        tmpBVal->setFormat(boatValue->getFormat());
-        tmpBVal->value = boatValue->value;
-        tmpBVal->valid = boatValue->valid;
-        double simSIValue = formatValue(tmpBVal.get(), common).value; // simulated value is generated at <formatValue>; here: retreive SI value
-        add(simSIValue);
-    } else {
-        // here we will add invalid (DBL_MAX) value; this will mark periods of missing data in buffer together with a timestamp
+        if (boatValue->valid) {
+            add(boatValue->value);
+
+        } else if (useSimuData) { // add simulated value to history buffer
+            std::unique_ptr<GwApi::BoatValue> tmpBVal; // Temp variable to get formatted and converted data value from OBP60Formatter
+            tmpBVal = std::unique_ptr<GwApi::BoatValue>(new GwApi::BoatValue(boatDataName)); // create temporary boat value for retrieval of simulation value
+            tmpBVal->setFormat(boatValue->getFormat());
+            tmpBVal->value = boatValue->value;
+            tmpBVal->valid = boatValue->valid;
+            double simSIValue = formatValue(tmpBVal.get(), common).value; // simulated value is generated at <formatValue>; here: retreive SI value
+            add(simSIValue);
+        } else {
+            // here we will add invalid (DBL_MAX) value; this will mark periods of missing data in buffer together with a timestamp
+        }
     }
 }
 // --- End Class HstryBuf ---------------
@@ -287,7 +293,8 @@ void HstryBuffers::addBuffer(const String& name)
 
     hstryBuffers[name] = std::unique_ptr<HstryBuf>(new HstryBuf(name, size, boatValueList, logger));
     hstryBuffers[name]->init(valueFormat, hstryUpdFreq, mltplr, bufferMinVal, bufferMaxVal);
-    LOG_DEBUG(GwLog::DEBUG, "HstryBuffers: new buffer added: name: %s, format: %s, multiplier: %d, min value: %.2f, max value: %.2f", name, valueFormat, mltplr, bufferMinVal, bufferMaxVal);
+    LOG_DEBUG(GwLog::DEBUG, "HstryBuffers: new buffer added: name: %s, format: %s, frequency: %d, multiplier: %d, min value: %.2f, max value: %.2f", name, valueFormat, hstryUpdFreq,
+        mltplr, bufferMinVal, bufferMaxVal);
 }
 
 // Handle all registered history buffers
