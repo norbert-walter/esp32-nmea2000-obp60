@@ -64,6 +64,7 @@ public:
     RingBuffer();
     RingBuffer(size_t size);
     void setMetaData(String name, String format, int updateFrequency, double multiplier, double minValue, double maxValue); // Set meta data for buffer
+    void setFormat(String format); // Specify format of buffer
     bool getMetaData(String& name, String& format, int& updateFrequency, double& multiplier, double& minValue, double& maxValue); // Get meta data of buffer
     bool getMetaData(String& name, String& format);
     String getName() const; // Get buffer name

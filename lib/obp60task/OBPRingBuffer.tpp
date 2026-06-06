@@ -60,6 +60,14 @@ void RingBuffer<T>::setMetaData(String name, String format, int updateFrequency,
     largest = std::min(dblMAX_VAL, maxValue);
 }
 
+// Specify format of buffer content
+template <typename T>
+void RingBuffer<T>::setFormat(String format)
+{
+    GWSYNCHRONIZED(&bufLocker);
+    dataFmt = format;
+}
+
 // Get meta data of buffer content
 template <typename T>
 bool RingBuffer<T>::getMetaData(String& name, String& format, int& updateFrequency, double& multiplier, double& minValue, double& maxValue)

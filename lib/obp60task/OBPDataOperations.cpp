@@ -223,14 +223,13 @@ HstryBuf::HstryBuf(const String& name, int size, BoatValueList* boatValues, GwLo
     boatValue = boatValues->findValueOrCreate(name);
 }
 
-void HstryBuf::init(const String& format, int updFreq, int mltplr, double minVal, double maxVal)
+void HstryBuf::init(const String& format, int updFreq, double mltplr, double minVal, double maxVal)
 {
     hstryBuf.setMetaData(boatDataName, format, updFreq, mltplr, minVal, maxVal);
     hstryMin = minVal;
     hstryMax = maxVal;
     bufUpdateTime = 0;
     if (!boatValue->valid) {
-        boatValue->setFormat(format);
         boatValue->value = std::numeric_limits<double>::max(); // mark current value invalid
     }
 }
@@ -239,15 +238,17 @@ void HstryBuf::add(double value)
 {
     if (value >= hstryMin && value <= hstryMax) {
         hstryBuf.add(value);
-        // LOG_DEBUG(GwLog::DEBUG, "HstryBuf::add:  name: %s, value: %.3f", hstryBuf.getName(), value);
+        LOG_DEBUG(GwLog::DEBUG, "HstryBuf::add:  name: %s, value: %.3f", hstryBuf.getName(), value);
     }
 }
 
 void HstryBuf::handle(bool useSimuData, CommonData& common)
 {
-    if (millis() >= (bufUpdateTime + hstryBuf.getUpdFreq())) {
+    if ((millis() - bufUpdateTime) >= hstryBuf.getUpdFreq()) {
+
         bufUpdateTime = millis();
-        LOG_DEBUG(GwLog::DEBUG, "HstryBuf::handle:  name: %s, frequency: %d, bufUpdateTime: %d, value: %.3f", hstryBuf.getName(), hstryBuf.getUpdFreq(), bufUpdateTime, boatValue->value);
+        // LOG_DEBUG(GwLog::DEBUG, "HstryBuf::handle:  name: %s, frequency: %d, format: %s, value: %.3f", hstryBuf.getName(), hstryBuf.getUpdFreq(),
+        //     boatValue->getFormat().c_str(), boatValue->value);
 
         if (boatValue->valid) {
             add(boatValue->value);
@@ -279,22 +280,16 @@ void HstryBuffers::addBuffer(const String& name)
     if (HstryBuffers::getBuffer(name) != nullptr) { // buffer for this data type already exists
         return;
     }
-    if (bufferParams.find(name) == bufferParams.end()) { // requested boat data type is not supported in list of <bufferParams>
+
+    auto it = bufferParams.find(name);
+    if (it == bufferParams.end() && !name.startsWith("xdr")) { // requested boat data type is not supported in list of <bufferParams>
+                                                               // we take any "XDR" type, though
         return;
     }
 
-    // Initialize metadata for buffer
-    String valueFormat = bufferParams[name].format; // Data format of boat data type
-    // String valueFormat = boatValueList->findValueOrCreate(name)->getFormat().c_str(); // Unfortunately, format is not yet available during system initialization
-    int hstryUpdFreq = bufferParams[name].hstryUpdFreq; // Update frequency for history buffers in ms
-    int mltplr = bufferParams[name].mltplr; // default multiplier which transforms original <double> value into buffer type format
-    double bufferMinVal = bufferParams[name].bufferMinVal; // Min value for this history buffer
-    double bufferMaxVal = bufferParams[name].bufferMaxVal; // Max value for this history buffer
-
+    // create buffer only; initialization with metadata can only be done later after boat data have been updated first time
     hstryBuffers[name] = std::unique_ptr<HstryBuf>(new HstryBuf(name, size, boatValueList, logger));
-    hstryBuffers[name]->init(valueFormat, hstryUpdFreq, mltplr, bufferMinVal, bufferMaxVal);
-    LOG_DEBUG(GwLog::DEBUG, "HstryBuffers: new buffer added: name: %s, format: %s, frequency: %d, multiplier: %d, min value: %.2f, max value: %.2f", name, valueFormat, hstryUpdFreq,
-        mltplr, bufferMinVal, bufferMaxVal);
+    LOG_DEBUG(GwLog::DEBUG, "HstryBuffers: new buffer added: name: %s", name);
 }
 
 // Handle all registered history buffers
@@ -302,6 +297,35 @@ void HstryBuffers::handleHstryBufs(bool useSimuData, CommonData& common)
 {
     for (auto& bufMap : hstryBuffers) {
         auto& buf = bufMap.second;
+
+        if (!buf->hasMetaData()) { // meta data initialization for buffer has not been done before
+
+            String valueFormat = boatValueList->findValueOrCreate(buf->boatDataName)->getFormat().c_str();
+            LOG_DEBUG(GwLog::DEBUG, "HstryBuffers: value name: %s, format: %s", boatValueList->findValueOrCreate(buf->boatDataName)->getName().c_str(), valueFormat);
+
+            if (!valueFormat.isEmpty()) {
+                String lookupKey = buf->boatDataName;
+                if (buf->boatDataName.startsWith("xdr")) { // current boat data is of type "XDR"
+                    lookupKey = valueFormat;
+                }
+                auto it = bufferParams.find(lookupKey);
+                if (it == bufferParams.end()) { // requested boat data type is not supported in list of <bufferParams>
+                    return;
+                }
+                HistoryParams params = it->second; // this is the metadata for the new buffer
+
+                int hstryUpdFreq = params.hstryUpdFreq; // Update frequency for history buffers in ms
+                double mltplr = params.mltplr; // default multiplier which transforms original <double> value into buffer type format
+                double bufferMinVal = params.bufferMinVal; // Min value for this history buffer
+                double bufferMaxVal = params.bufferMaxVal; // Max value for this history buffer
+
+                hstryBuffers[buf->boatDataName]->init(valueFormat, hstryUpdFreq, mltplr, bufferMinVal, bufferMaxVal);
+                buf->metaDataDefined = true;
+                LOG_DEBUG(GwLog::DEBUG, "HstryBuffers::handleBufs: metadata added: name: %s, format: %s, frequency: %d, multiplier: %f, min value: %.2f, max value: %.2f", buf->boatDataName, valueFormat, hstryUpdFreq,
+                    mltplr, bufferMinVal, bufferMaxVal);
+            }
+        }
+
         buf->handle(useSimuData, common);
     }
 }

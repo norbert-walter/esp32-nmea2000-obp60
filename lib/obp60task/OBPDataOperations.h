@@ -39,6 +39,7 @@ private:
     String boatDataName;
     double hstryMin;
     double hstryMax;
+    bool metaDataDefined = false;
     unsigned long bufUpdateTime;
     GwApi::BoatValue* boatValue;
     GwLog* logger;
@@ -47,7 +48,8 @@ private:
 
 public:
     HstryBuf(const String& name, int size, BoatValueList* boatValues, GwLog* log);
-    void init(const String& format, int updFreq, int mltplr, double minVal, double maxVal);
+    bool hasMetaData() const { return metaDataDefined; };
+    void init(const String& format, int updFreq, double mltplr, double minVal, double maxVal);
     void add(double value);
     void handle(bool useSimuData, CommonData& common);
 };
@@ -62,33 +64,41 @@ private:
 
     struct HistoryParams {
         int hstryUpdFreq; // update frequency of history buffer (documentation only)
-        int mltplr; // specifies actual value precision being storable:
-                    // [10000: 0 - 6.5535 | 1000: 0 - 65.535 | 100: 0 - 655.35 | 10: 0 - 6553.5 | 1: 0 - 65535]
+        double mltplr; // specifies actual value precision being storable:
+                       // [10000: 0 - 6.5535 | 1000: 0 - 65.535 | 100: 0 - 655.35 | 10: 0 - 6553.5 | 1: 0 - 65535 | 0.1: 0 - 655350]
         double bufferMinVal; // minimum valid data value
         double bufferMaxVal; // maximum valid data value
-        String format; // format of data type
+        //String format; // format of data type
     };
 
-    // Define buffer parameters for supported boat data type
-    // Structure: name, frequency, multiplier, minVal, maxVal, format
     std::map<String, HistoryParams> bufferParams = {
-        { "AWA", { 1000, 10000, 0.0, M_TWOPI, "formatWind" } },
-        { "AWD", { 1000, 10000, 0.0, M_TWOPI, "formatCourse" } },
-        { "AWS", { 1000, 1000, 0.0, 65.0, "formatKnots" } },
-        { "BARO", {60000, 10, 0.0, 6553, "formatXdr:P:B"}},
-        { "COG", { 1000, 10000, 0.0, M_TWOPI, "formatCourse" } },
-        { "DBS", { 1000, 100, 0.0, 650.0, "formatDepth" } },
-        { "DBT", { 1000, 100, 0.0, 650.0, "formatDepth" } },
-        { "DPT", { 1000, 100, 0.0, 650.0, "formatDepth" } },
-        { "HDM", { 1000, 10000, 0.0, M_TWOPI, "formatCourse" } },
-        { "HDT", { 1000, 10000, 0.0, M_TWOPI, "formatCourse" } },
-        { "ROT", { 1000, 10000, -M_PI / 180.0 * 99.0, M_PI / 180.0 * 99.0, "formatRot" } }, // min/max is -/+ 99 degrees for "rate of turn"
-        { "SOG", { 1000, 1000, 0.0, 65.0, "formatKnots" } },
-        { "STW", { 1000, 1000, 0.0, 65.0, "formatKnots" } },
-        { "TWA", { 1000, 10000, 0.0, M_TWOPI, "formatWind" } },
-        { "TWD", { 1000, 10000, 0.0, M_TWOPI, "formatCourse" } },
-        { "TWS", { 1000, 1000, 0.0, 65.0, "formatKnots" } },
-        { "WTemp", { 1000, 100, 233.0, 650.0, "kelvinToC" } } // [-50..376] °C
+        { "AWA", { 1000, 10000, 0.0, M_TWOPI } },
+        { "AWD", { 1000, 10000, 0.0, M_TWOPI } },
+        { "AWS", { 1000, 1000, 0.0, 65.0 } },
+        { "COG", { 1000, 10000, 0.0, M_TWOPI } },
+        { "DBK", { 1000, 100, 0.0, 650.0 } },
+        { "DBS", { 1000, 100, 0.0, 650.0 } },
+        { "DBT", { 1000, 100, 0.0, 650.0 } },
+        { "DPT", { 1000, 100, 0.0, 650.0 } },
+        { "HDM", { 1000, 10000, 0.0, M_TWOPI } },
+        { "HDT", { 1000, 10000, 0.0, M_TWOPI } },
+        { "ROT", { 1000, 10000, -M_PI / 180.0 * 99.0, M_PI / 180.0 * 99.0 } }, // min/max is -/+ 99 degrees for "rate of turn"
+        { "SOG", { 1000, 1000, 0.0, 65.0 } },
+        { "STW", { 1000, 1000, 0.0, 65.0 } },
+        { "TWA", { 1000, 10000, 0.0, M_TWOPI } },
+        { "TWD", { 1000, 10000, 0.0, M_TWOPI } },
+        { "TWS", { 1000, 1000, 0.0, 65.0 } },
+        { "WTemp", { 1000, 100, 263.0, 403.0 } }, // water temp [-10..130] °C
+        { "formatXdr:C:K", { 1000, 100, 223.0, 473.15 } }, // temperature [-50..200] deg celsius
+        { "formatXdr:P:B", { 1000, 1000, 0, 65.0 } }, // pressure [0..65] bar
+        { "formatXdr:P:P", { 60000, 0.1, 0, 650000 } }, // pressure [0..6500] hPa
+        { "formatXdr:H:P", { 1000, 100, 0, 100 } }, // humidity [0..100] percent
+        { "formatXdr:I:A", { 1000, 100, 0, 650.0 } }, // current [0..650] amperes
+        { "formatXdr:U:V", { 1000, 1000, 0, 65.0 } }, // voltage [0..65] volts
+        { "formatXdr:T:R", { 1000, 1, 0, 65000 } }, // tachometer [0..65000] rpm
+        { "formatXdr:V:L", { 10000, 100, 0, 650 } }, // volume [0..650] litres
+        { "formatXdr:V:M", { 10000, 10000, 0, 6.50 } }, // volume [0..6.5] m^3
+        { "formatXdr:G:M", { 3000, 0.1, 0, 650000 } } // generic -> (pressure) [0..6500] hPa
     };
 
 public:
