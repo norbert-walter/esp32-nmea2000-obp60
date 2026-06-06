@@ -519,11 +519,11 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
         }
         if (String(tempFormat) == "C") {
             temp = temp - 273.15;
-            result.unit = "C";
+            result.unit = "Deg C";
         }
         else if (String(tempFormat) == "F") {
             temp = (temp - 273.15) * 9 / 5 + 32;
-            result.unit = "F";
+            result.unit = "Deg F";
         }
         else{
             result.unit = "K";
