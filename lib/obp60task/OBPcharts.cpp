@@ -10,7 +10,8 @@ std::map<String, ChartProps> Chart::dfltChrtDta = {
     { "formatCourse", { 60.0 * DEG_TO_RAD, 10.0 * DEG_TO_RAD } }, // default course range 60 degrees
     { "formatKnots", { 2.572, 2.572 } }, // default speed range in m/s
     { "formatDepth", { 10.0, 5.0 } }, // default depth range in m
-    { "kelvinToC", { 20.0, 5.0 } } // default temp range in °C/K
+    { "kelvinToC", { 20.0, 5.0 } }, // default temp range in °C/K
+    { "formatXdr:P:P", { 4000.0, 1000.0 } } // default pressure range in Pascal (hPa * 100); XDR <B> (bar) format is represented in gateway in the same way
 };
 
 // --- Class Chart ---------------
@@ -30,14 +31,14 @@ Chart::Chart(RingBuffer<uint16_t>& dataBuf, double dfltRng, CommonData& common, 
     fgColor = commonData->fgcolor;
     bgColor = commonData->bgcolor;
 
-    // display dimensions (avoid calling width()/height() on incomplete LGFX type)
-    #ifdef TFT_DISPLAY
-        dWidth = 480;
-        dHeight = 320;
-    #else
-        dWidth = getdisplay().width();
-        dHeight = getdisplay().height();
-    #endif
+// display dimensions (avoid calling width()/height() on incomplete LGFX type)
+#ifdef TFT_DISPLAY
+    dWidth = 480;
+    dHeight = 320;
+#else
+    dWidth = getdisplay().width();
+    dHeight = getdisplay().height();
+#endif
 
     dataBuf.getMetaData(dbName, dbFormat);
     dbMIN_VAL = dataBuf.getMinVal();
@@ -50,16 +51,18 @@ Chart::Chart(RingBuffer<uint16_t>& dataBuf, double dfltRng, CommonData& common, 
     }
 
     // Initialize chart data format; shorter version of standard format indicator
-    if (dbFormat == "formatCourse" || dbFormat == "formatWind" || dbFormat == "formatRot") {
+    if (dbFormat == "formatCourse" || dbFormat == "formatWind") {
         chrtDataFmt = WIND; // Chart is showing data of course / wind <degree> format
     } else if (dbFormat == "formatRot") {
         chrtDataFmt = ROTATION; // Chart is showing data of rotational <degree> format
     } else if (dbFormat == "formatKnots") {
         chrtDataFmt = SPEED; // Chart is showing data of speed or windspeed format
     } else if (dbFormat == "formatDepth") {
-        chrtDataFmt = DEPTH; // Chart ist showing data of <depth> format
+        chrtDataFmt = DEPTH;
     } else if (dbFormat == "kelvinToC") {
-        chrtDataFmt = TEMPERATURE; // Chart ist showing data of <temp> format
+        chrtDataFmt = TEMPERATURE;
+    } else if (dbFormat.startsWith("formatXdr:P")) {
+        chrtDataFmt = PRESSURE;
     } else {
         chrtDataFmt = OTHER; // Chart is showing any other data format
     }
@@ -75,6 +78,8 @@ Chart::Chart(RingBuffer<uint16_t>& dataBuf, double dfltRng, CommonData& common, 
         } else if (tempFormat == "F") {
             zeroValue = 255.37;
         }
+    } else if (chrtDataFmt == PRESSURE) {
+        zeroValue = 98000.0; // typical low pressure area value
     }
 
     // Read default range and range step for this chart type
@@ -123,8 +128,8 @@ void Chart::showChrt(char chrtDir, int8_t chrtSz, const int8_t chrtIntv, bool pr
         return;
     }
 
-    if (showCurrValue) { // show latest value from history buffer; this should be the most current one
-        currValue.value = dataBuf.getLast();
+    if (showCurrValue) {
+        currValue.value = dataBuf.getLast(); // show latest value from history buffer; this should be the most current one
         currValue.valid = currValue.value != dbMAX_VAL;
         prntCurrValue(chrtDir, currValue);
     }
@@ -133,7 +138,7 @@ void Chart::showChrt(char chrtDir, int8_t chrtSz, const int8_t chrtIntv, bool pr
 // define dimensions and start points for chart
 bool Chart::setChartDimensions(const char direction, const int8_t size)
 {
-    if ((direction != HORIZONTAL && direction != VERTICAL) || (size < 0 || size > 2)) {
+    if ((direction != HORIZONTAL && direction != VERTICAL) || (size < 0 || size > 3)) {
         LOG_DEBUG(GwLog::ERROR, "obp60:setChartDimensions %s: wrong parameters", dataBuf.getName());
         return false;
     }
@@ -154,6 +159,13 @@ bool Chart::setChartDimensions(const char direction, const int8_t size)
             valAxis = (dHeight - top - bottom) / 2 - hGap;
             cRoot = { 0, top + (valAxis + hGap) + hGap - 1 };
             break;
+        case 3:
+            valAxis = (dHeight - top - bottom) * 0.667 - hGap;
+            cRoot = { 0, top - 1 };
+            break;
+        default: // same as case 0; should never happen
+            valAxis = dHeight - top - bottom;
+            cRoot = { 0, top - 1 };
         }
 
     } else if (direction == VERTICAL) {
@@ -172,10 +184,13 @@ bool Chart::setChartDimensions(const char direction, const int8_t size)
             valAxis = dWidth / 2 - vGap;
             cRoot = { dWidth / 2 + vGap - 1, top - 1 };
             break;
+        default: // same as case 0; should never happen
+            valAxis = dWidth - 1;
+            cRoot = { 0, top - 1 };
         }
     }
-    //LOG_DEBUG(GwLog::DEBUG, "obp60:setChartDimensions %s: direction: %c, size: %d, dWidth: %d, dHeight: %d, timAxis: %d, valAxis: %d, cRoot{%d, %d}, top: %d, bottom: %d, hGap: %d, vGap: %d",
-    //     dataBuf.getName(), direction, size, dWidth, dHeight, timAxis, valAxis, cRoot.x, cRoot.y, top, bottom, hGap, vGap);
+    // LOG_DEBUG(GwLog::DEBUG, "obp60:setChartDimensions %s: direction: %c, size: %d, dWidth: %d, dHeight: %d, timAxis: %d, valAxis: %d, cRoot{%d, %d}, top: %d, bottom: %d, hGap: %d, vGap: %d",
+    //      dataBuf.getName(), direction, size, dWidth, dHeight, timAxis, valAxis, cRoot.x, cRoot.y, top, bottom, hGap, vGap);
     return true;
 }
 
@@ -186,10 +201,10 @@ void Chart::drawChrt(const char chrtDir, const int8_t chrtIntv, GwApi::BoatValue
 
     getBufferStartNSize(chrtIntv);
 
-    // LOG_DEBUG(GwLog::DEBUG, "Chart:drawChart: min: %.1f, mid: %.1f, max: %.1f, rng: %.1f", chrtMin, chrtMid, chrtMax, chrtRng);
+    LOG_DEBUG(GwLog::DEBUG, "Chart:drawChart: min: %.1f, mid: %.1f, max: %.1f, rng: %.1f", chrtMin, chrtMid, chrtMax, chrtRng);
     calcChrtBorders(chrtMin, chrtMid, chrtMax, chrtRng);
     chrtScale = double(valAxis) / chrtRng; // Chart scale: pixels per value step
-    // LOG_DEBUG(GwLog::DEBUG, "Chart:drawChart: min: %.1f, mid: %.1f, max: %.1f, rng: %.1f", chrtMin, chrtMid, chrtMax, chrtRng);
+    LOG_DEBUG(GwLog::DEBUG, "Chart:drawChart: min: %.1f, mid: %.1f, max: %.1f, rng: %.1f", chrtMin, chrtMid, chrtMax, chrtRng);
 
     // Do we have valid buffer data?
     if (dataBuf.getMax() == dbMAX_VAL) { // only <MAX_VAL> values in buffer -> no valid wind data available
@@ -309,7 +324,7 @@ void Chart::calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, doub
         double currMaxVal = dataBuf.getMax(numBufVals);
 
         if (currMinVal == dbMAX_VAL || currMaxVal == dbMAX_VAL) {
-            return; // no valid data
+            // return; // no valid data
         }
 
         // check if current chart border have to be adjusted
@@ -333,8 +348,8 @@ void Chart::calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, doub
         rngMid = (rngMin + rngMax) / 2.0;
         rng = rngMax - rngMin;
 
-        // LOG_DEBUG(GwLog::DEBUG, "calcChrtRange-end: currMinVal: %.1f, currMaxVal: %.1f, rngMin: %.1f, rngMid: %.1f, rngMax: %.1f, rng: %.1f, rngStep: %.1f, zeroValue: %.1f, dbMIN_VAL: %.1f",
-        //     currMinVal, currMaxVal, rngMin, rngMid, rngMax, rng, rngStep, zeroValue, dbMIN_VAL);
+        LOG_DEBUG(GwLog::DEBUG, "calcChrtRange-end: currMinVal: %.1f, currMaxVal: %.1f, rngMin: %.1f, rngMid: %.1f, rngMax: %.1f, rng: %.1f, rngStep: %.1f, zeroValue: %.1f, dbMIN_VAL: %.1f",
+            currMinVal, currMaxVal, rngMin, rngMid, rngMax, rng, rngStep, zeroValue, dbMIN_VAL);
     }
 }
 
@@ -354,7 +369,7 @@ void Chart::drawChartLines(const char direction, const int8_t chrtIntv, const do
             // Calculate index with wrapping: (start - offset + size) % size
             int primeIdx = (bufStart - (p * chrtIntv));
             double primeVal = dataBuf.get(primeIdx);
-            
+
             if (primeVal != dbMAX_VAL) {
                 chrtAvg.reading(primeVal);
             }
@@ -376,8 +391,8 @@ void Chart::drawChartLines(const char direction, const int8_t chrtIntv, const do
 
             point = setCurrentChartPoint(i, direction, chrtVal, chrtScale);
 
-            // if (i >= (numBufVals / chrtIntv) - 5) // log chart data of 1 line (adjust for test purposes)
-            //    LOG_DEBUG(GwLog::DEBUG, "PageWindPlot Chart: i: %d, chrtVal: %.2f, chrtMin: %.2f, {x,y} {%d,%d}", i, chrtVal, chrtMin, x, y);
+            if (i >= (numBufVals / chrtIntv) - 5) // log chart data of 1 line (adjust for test purposes)
+                LOG_DEBUG(GwLog::DEBUG, "PageWindPlot Chart: i: %d, chrtVal: %.2f, chrtMin: %.2f, {x,y} {%d,%d}", i, chrtVal, chrtMin, x, y);
 
             if ((i == 0) || (chrtPrevVal == dbMAX_VAL)) {
                 // just a dot for 1st chart point or after some invalid values
@@ -408,7 +423,7 @@ void Chart::drawChartLines(const char direction, const int8_t chrtIntv, const do
                 }
             }
 
-            if (chrtDataFmt == DEPTH) {
+            if (chrtDataFmt == DEPTH || chrtDataFmt == PRESSURE) {
                 if (direction == HORIZONTAL) { // horizontal chart
                     drawBoldLine(point.x, point.y, point.x, cRoot.y + valAxis);
                 } else { // vertical chart
@@ -447,7 +462,7 @@ Pos Chart::setCurrentChartPoint(const int i, const char direction, const double 
 
         if (chrtDataFmt == WIND || chrtDataFmt == ROTATION) { // degree type value
             currentPoint.y = cRoot.y + static_cast<int>((WindUtils::to2PI(chrtVal - chrtMin) * chrtScale) + 0.5); // calculate chart point and round
-        } else if (chrtDataFmt == SPEED or chrtDataFmt == TEMPERATURE) { // speed or temperature data format -> print low values at bottom
+        } else if (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE || chrtDataFmt == PRESSURE) { // speed or temperature data format -> print low values at bottom
             currentPoint.y = cRoot.y + valAxis - static_cast<int>(((chrtVal - chrtMin) * chrtScale) + 0.5); // calculate chart point and round
         } else { // any other data format
             currentPoint.y = cRoot.y + static_cast<int>(((chrtVal - chrtMin) * chrtScale) + 0.5); // calculate chart point and round
@@ -532,7 +547,8 @@ void Chart::drawChrtValAxis(const char chrtDir, const int8_t chrtSz, bool prntNa
             font = &Ubuntu_Bold12pt8b;
             getdisplay().setFont(font);
             getdisplay().fillRect(cRoot.x + timAxis - 57, cRoot.y + 2, 58, 20, bgColor); // clear small area to remove potential chart lines
-            drawTextRalign(cRoot.x + timAxis, cRoot.y + 19, dbName.substring(0, 5));
+            String name = xdrDelete(dbName); // Value name
+            drawTextRalign(cRoot.x + timAxis - 1, cRoot.y + 19, name.substring(0, 5));
 
             if (chrtDataFmt == WIND) {
                 prntHorizChartThreeValueAxisLabel(font);
@@ -548,10 +564,11 @@ void Chart::drawChrtValAxis(const char chrtDir, const int8_t chrtSz, bool prntNa
 
             font = &Ubuntu_Bold10pt8b;
             if (prntName) {
-                // print buffer data name on right hand side of time axis (max. size 5 characters)
+                // print buffer data name on right hand side of time axis (max. size 6 characters)
                 getdisplay().setFont(font);
-                getdisplay().fillRect(cRoot.x + timAxis - 57, cRoot.y + 2, 58, 20, bgColor); // clear small area to remove potential chart lines
-                drawTextRalign(cRoot.x + timAxis, cRoot.y + 16, dbName.substring(0, 5));
+                getdisplay().fillRect(cRoot.x + timAxis - 57, cRoot.y + 2, 58, 16, bgColor); // clear small area to remove potential chart lines
+                String name = xdrDelete(dbName); // Value name
+                drawTextRalign(cRoot.x + timAxis - 1, cRoot.y + 16, name.substring(0, 6));
             }
 
             prntHorizChartThreeValueAxisLabel(font);
@@ -563,7 +580,8 @@ void Chart::drawChrtValAxis(const char chrtDir, const int8_t chrtSz, bool prntNa
         if (chrtSz == FULL_SIZE) {
             font = &Ubuntu_Bold12pt8b;
             getdisplay().setFont(font); // use larger font
-            drawTextRalign(cRoot.x + (valAxis * 0.42), cRoot.y - 2, dbName.substring(0, 6)); // print buffer data name (max. size 5 characters)
+            String name = xdrDelete(dbName); // Value name
+            drawTextRalign(cRoot.x + (valAxis * 0.42), cRoot.y - 2, name.substring(0, 6)); // print buffer data name (max. size 6 characters)
         }
 
         font = &Ubuntu_Bold10pt8b;
@@ -574,26 +592,39 @@ void Chart::drawChrtValAxis(const char chrtDir, const int8_t chrtSz, bool prntNa
 // Print current data value
 void Chart::prntCurrValue(const char direction, GwApi::BoatValue& currValue)
 {
-    const int xPosVal = (direction == HORIZONTAL) ? cRoot.x + (timAxis / 2) - 56 : cRoot.x + 32;
-    const int yPosVal = (direction == HORIZONTAL) ? cRoot.y + valAxis - 7 : cRoot.y + timAxis - 7;
+    //    const int xPosVal = (direction == HORIZONTAL) ? cRoot.x + (timAxis / 2) - 56 : cRoot.x + 32;
+    //    const int yPosVal = (direction == HORIZONTAL) ? cRoot.y + valAxis - 7 : cRoot.y + timAxis - 7;
+    const int xPosVal = (direction == HORIZONTAL) ? cRoot.x + (timAxis / 2) - 73 : cRoot.x + 32;
+    const int yPosVal = (direction == HORIZONTAL) ? cRoot.y + valAxis : cRoot.y + timAxis;
 
     FormattedData frmtDbData = formatValue(&currValue, *commonData, NO_SIMUDATA);
     String sdbValue = frmtDbData.svalue; // value as formatted string
     String dbUnit = frmtDbData.unit; // Unit of value; limit length to 3 characters
 
-    getdisplay().fillRect(xPosVal - 1, yPosVal - 35, 128, 41, bgColor); // Clear area for TWS value
-    getdisplay().drawRect(xPosVal, yPosVal - 34, 126, 40, fgColor); // Draw box for TWS value
+    // box
+    //    getdisplay().fillRect(xPosVal - 1, yPosVal - 35, 128, 41, bgColor); // Clear area for TWS value
+    //    getdisplay().drawRect(xPosVal, yPosVal - 34, 126, 40, fgColor); // Draw box for TWS value
+    getdisplay().fillRect(xPosVal - 1, yPosVal - 40, 146, 39, bgColor); // Clear area for TWS value
+    getdisplay().drawRect(xPosVal, yPosVal - 39, 144, 37, fgColor); // Draw box for TWS value
+
+    // value
     getdisplay().setFont(&DSEG7Classic_BoldItalic16pt7b);
-    getdisplay().setCursor(xPosVal + 1, yPosVal);
-    getdisplay().print(sdbValue); // value
+    getdisplay().setCursor(xPosVal + 1, yPosVal - 6);
+    getdisplay().print(sdbValue);
+    //    drawTextCenter(xPosVal + 70, yPosVal - 19, sdbValue);
 
+    // name
     getdisplay().setFont(&Ubuntu_Bold10pt8b);
-    getdisplay().setCursor(xPosVal + 76, yPosVal - 17);
-    getdisplay().print(dbName.substring(0, 3)); // Name, limited to 3 characters
+    //    getdisplay().setCursor(xPosVal + 76, yPosVal - 17);
+    getdisplay().setCursor(xPosVal + 100, yPosVal - 23);
+    String name = xdrDelete(dbName);
+    getdisplay().print(name.substring(0, 3)); // Name, limited to 3 characters
 
+    // unit
     getdisplay().setFont(&Ubuntu_Bold8pt8b);
-    getdisplay().setCursor(xPosVal + 76, yPosVal + 0);
-    getdisplay().print(dbUnit); // Unit
+    //    getdisplay().setCursor(xPosVal + 76, yPosVal + 0);
+    getdisplay().setCursor(xPosVal + 101, yPosVal - 8);
+    getdisplay().print(dbUnit);
 }
 
 // print message for no valid data availabletemplate <typename T>
@@ -652,8 +683,8 @@ double Chart::getAngleRng(const double center, size_t amount)
     return (maxRng != dbMIN_VAL ? maxRng : dbMAX_VAL); // Return range from <mid> to <max>
 }
 
- // print value axis label with only three values: top, mid, and bottom for vertical chart
- void Chart::prntVerticChartThreeValueAxisLabel(const GFXfont* font)
+// print value axis label with only three values: top, mid, and bottom for vertical chart
+void Chart::prntVerticChartThreeValueAxisLabel(const GFXfont* font)
 {
     double cVal;
     char sVal[7];
@@ -689,7 +720,7 @@ void Chart::prntHorizChartThreeValueAxisLabel(const GFXfont* font)
     double axLabel;
     double chrtMin, chrtMid, chrtMax;
     int xOffset, yOffset; // offset for text position of x axis label for different font sizes
-    char sVal[11];
+    char sVal[11]; // data value have max. 6 digits + decimal point + 2 decimals + sign
 
     if (font == &Ubuntu_Bold10pt8b) {
         xOffset = 32;
@@ -706,33 +737,56 @@ void Chart::prntHorizChartThreeValueAxisLabel(const GFXfont* font)
     chrtMax = convertValue(this->chrtMax, dbName, dbFormat, *commonData);
 
     // print top axis label
-    axLabel = (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE) ? chrtMax : chrtMin;
-    snprintf(sVal, sizeof(sVal), "%3.0f", axLabel);
-    getdisplay().fillRect(cRoot.x, cRoot.y + 2, xOffset + 3, yOffset, bgColor); // Clear small area to remove potential chart lines
-    drawTextRalign(cRoot.x + xOffset, cRoot.y + yOffset, sVal); // range value
+    axLabel = (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE || chrtDataFmt == PRESSURE) ? chrtMax : chrtMin;
+    formatLabel(axLabel).toCharArray(sVal, 11);
+    if (chrtDataFmt == PRESSURE) {
+        snprintf(sVal, sizeof(sVal), "%4.0f", axLabel);
+        getdisplay().fillRect(cRoot.x, cRoot.y + 2, xOffset + 12, yOffset, bgColor); // Clear small area to remove potential chart lines
+        drawTextRalign(cRoot.x + xOffset + 11, cRoot.y + yOffset, sVal); // range value
+    } else {
+        if (char* dot = strchr(sVal, '.'))
+            *dot = '\0'; // no decimal for bottom axis label
+        //        snprintf(sVal, sizeof(sVal), "%3.0f", axLabel); // no decimal for bottom axis label
+        getdisplay().fillRect(cRoot.x, cRoot.y + 2, xOffset + 3, yOffset, bgColor); // Clear small area to remove potential chart lines
+        drawTextRalign(cRoot.x + xOffset, cRoot.y + yOffset, sVal); // range value
+    }
 
     // print mid axis label
     axLabel = chrtMid;
-    formatLabel(axLabel).toCharArray(sVal, 11); // print mid label with 1 decimal for small numbers, if required
-    getdisplay().fillRect(cRoot.x, cRoot.y + (valAxis / 2) - 8, xOffset + 3, 16, bgColor); // Clear small area to remove potential chart lines
-    drawTextRalign(cRoot.x + xOffset, cRoot.y + (valAxis / 2) + 6, sVal); // range value
-    getdisplay().drawLine(cRoot.x + xOffset + 3, cRoot.y + (valAxis / 2), cRoot.x + timAxis, cRoot.y + (valAxis / 2), fgColor);
+    formatLabel(axLabel).toCharArray(sVal, 11);
+    if (chrtDataFmt == PRESSURE) { // print 4-digit value
+        getdisplay().fillRect(cRoot.x, cRoot.y + (valAxis / 2) - 8, xOffset + 12, yOffset, bgColor); // Clear small area to remove potential chart lines
+        drawTextRalign(cRoot.x + xOffset + 11, cRoot.y + (valAxis / 2) + 6, sVal); // range value
+        getdisplay().drawLine(cRoot.x + xOffset + 14, cRoot.y + (valAxis / 2), cRoot.x + timAxis, cRoot.y + (valAxis / 2), fgColor);
+    } else { // print 3-digit value
+        getdisplay().fillRect(cRoot.x, cRoot.y + (valAxis / 2) - 8, xOffset + 3, yOffset, bgColor); // Clear small area to remove potential chart lines
+        drawTextRalign(cRoot.x + xOffset, cRoot.y + (valAxis / 2) + 6, sVal); // range value
+        getdisplay().drawLine(cRoot.x + xOffset + 3, cRoot.y + (valAxis / 2), cRoot.x + timAxis, cRoot.y + (valAxis / 2), fgColor);
+    }
 
     // print bottom axis label
-    axLabel = (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE) ? chrtMin : chrtMax;
-    snprintf(sVal, sizeof(sVal), "%3.0f", axLabel);
-    getdisplay().fillRect(cRoot.x, cRoot.y + valAxis - 14, xOffset + 3, 15, bgColor); // Clear small area to remove potential chart lines
-    drawTextRalign(cRoot.x + xOffset, cRoot.y + valAxis, sVal); // range value
-    getdisplay().drawLine(cRoot.x + xOffset + 3, cRoot.y + valAxis, cRoot.x + timAxis, cRoot.y + valAxis, fgColor);
+    axLabel = (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE || chrtDataFmt == PRESSURE) ? chrtMin : chrtMax;
+    formatLabel(axLabel).toCharArray(sVal, 11);
+    if (chrtDataFmt == PRESSURE) {
+        getdisplay().fillRect(cRoot.x, cRoot.y + valAxis - 14, xOffset + 12, yOffset, bgColor); // Clear small area to remove potential chart lines
+        drawTextRalign(cRoot.x + xOffset + 11, cRoot.y + valAxis, sVal); // range value
+        getdisplay().drawLine(cRoot.x + xOffset + 14, cRoot.y + valAxis, cRoot.x + timAxis, cRoot.y + valAxis, fgColor);
+    } else {
+        if (char* dot = strchr(sVal, '.'))
+            *dot = '\0'; // no decimal for bottom axis label
+        //        snprintf(sVal, sizeof(sVal), "%3.0f", axLabel); // no decimal for bottom axis label
+        getdisplay().fillRect(cRoot.x, cRoot.y + valAxis - 14, xOffset + 3, yOffset, bgColor); // Clear small area to remove potential chart lines
+        drawTextRalign(cRoot.x + xOffset, cRoot.y + valAxis, sVal); // range value
+        getdisplay().drawLine(cRoot.x + xOffset + 3, cRoot.y + valAxis, cRoot.x + timAxis, cRoot.y + valAxis, fgColor);
+    }
 }
 
 // print value axis label with multiple axis lines for horizontal chart
 void Chart::prntHorizChartMultiValueAxisLabel(const GFXfont* font)
 {
     double chrtMin, chrtMax, chrtRng;
-//    int axSlots = 5; // no. of axis labels
     int xOffset; // offset for text position of x axis label for different font sizes
-    char sVal[11];
+    char sVal[11]; // data value have max. 6 digits + decimal point + 2 decimals + sign
 
     if (font == &Ubuntu_Bold10pt8b) {
         xOffset = 32;
@@ -753,7 +807,7 @@ void Chart::prntHorizChartMultiValueAxisLabel(const GFXfont* font)
     // LOG_DEBUG(GwLog::DEBUG, "Chart::printHorizMultiValueAxisLabel: chrtRng: %.2f, th-chrtRng: %.2f, axSlots: %.2f, axIntv: %.2f, axLabel: %.2f, chrtMin: %.2f, chrtMid: %.2f, chrtMax: %.2f", chrtRng, this->chrtRng, VALAXIS_SLOTS, axIntv, axLabel, this->chrtMin, chrtMid, chrtMax);
 
     int loopStrt, loopEnd, loopStp;
-    if (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE || chrtDataFmt == OTHER) {
+    if (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE || chrtDataFmt == PRESSURE || chrtDataFmt == OTHER) {
         loopStrt = valAxis - valAxisStep;
         loopEnd = valAxisStep / 2;
         loopStp = valAxisStep * -1;
@@ -765,11 +819,16 @@ void Chart::prntHorizChartMultiValueAxisLabel(const GFXfont* font)
     }
 
     for (int j = loopStrt; (loopStp > 0) ? (j < loopEnd) : (j > loopEnd); j += loopStp) {
-        // sVal = formatLabel(axLabel);
-        snprintf(sVal, sizeof(sVal), "%3.0f", axLabel);
-        getdisplay().fillRect(cRoot.x, cRoot.y + j - 11, xOffset + 3, 21, bgColor); // Clear small area to remove potential chart lines
-        drawTextRalign(cRoot.x + xOffset, cRoot.y + j + 7, sVal); // range value
-        getdisplay().drawLine(cRoot.x + xOffset + 3, cRoot.y + j, cRoot.x + timAxis, cRoot.y + j, fgColor);
+        formatLabel(axLabel).toCharArray(sVal, 11);
+        if (chrtDataFmt == PRESSURE) { // print 4-digit value
+            getdisplay().fillRect(cRoot.x, cRoot.y + j - 11, xOffset + 12, 21, bgColor); // Clear small area to remove potential chart lines
+            drawTextRalign(cRoot.x + xOffset + 11, cRoot.y + j + 7, sVal); // range value
+            getdisplay().drawLine(cRoot.x + xOffset + 14, cRoot.y + j, cRoot.x + timAxis, cRoot.y + j, fgColor);
+        } else { // print 3-digit value
+            getdisplay().fillRect(cRoot.x, cRoot.y + j - 11, xOffset + 3, 21, bgColor); // Clear small area to remove potential chart lines
+            drawTextRalign(cRoot.x + xOffset, cRoot.y + j + 7, sVal); // range value
+            getdisplay().drawLine(cRoot.x + xOffset + 3, cRoot.y + j, cRoot.x + timAxis, cRoot.y + j, fgColor);
+        }
 
         axLabel += axIntv;
     }
@@ -812,16 +871,18 @@ String Chart::formatLabel(const double& label)
 {
     char sVal[11];
 
-    if (dbFormat == "formatCourse" || dbFormat == "formatWind") {
-        // Format 3 numbers with prefix zero
-        snprintf(sVal, sizeof(sVal), "%03.0f", label);
+    if (chrtDataFmt == WIND) {
+        snprintf(sVal, sizeof(sVal), "%03.0f", label); // Format 3 numbers with prefix zero
 
-/*    } else if (dbFormat == "formatRot") {
-        if (label > -10 && label < 10) {
+    } else if (chrtDataFmt == ROTATION) {
+        if (label > -9.995 && label < 9.995) {
             snprintf(sVal, sizeof(sVal), "%3.2f", label);
         } else {
             snprintf(sVal, sizeof(sVal), "%3.0f", label);
-        } */
+        }
+
+    } else if (chrtDataFmt == PRESSURE) {
+        snprintf(sVal, sizeof(sVal), "%4.0f", label);
 
     } else {
         if (label < 9.95) {

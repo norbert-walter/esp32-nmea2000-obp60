@@ -29,6 +29,7 @@ protected:
         SPEED,
         DEPTH,
         TEMPERATURE,
+        PRESSURE,
         OTHER
     };
 
@@ -37,6 +38,7 @@ protected:
     static constexpr int8_t FULL_SIZE = 0;
     static constexpr int8_t HALF_SIZE_LEFT = 1;
     static constexpr int8_t HALF_SIZE_RIGHT = 2;
+    static constexpr int8_t TWO_THIRD_TOP = 3;
 
     static constexpr int8_t MIN_FREE_VALUES = 60; // free 60 values when chart line reaches chart end
     static constexpr int8_t THRESHOLD_NO_DATA = 3; // max. seconds of invalid values in a row
@@ -84,12 +86,12 @@ protected:
     bool bufDataValid = false; // Flag to indicate if buffer data is valid
     int oldChrtIntv = 0; // remember recent user selection of data interval
 
-    movingAvg<double> chrtAvg{7}; // Store average of the last 7 chart values if chart gradient shall be smoothed
+    movingAvg<double> chrtAvg { 7 }; // Store average of the last 7 chart values if chart gradient shall be smoothed
     double chrtPrevVal; // Last data value in chart area
     int x, y; // x and y coordinates for drawing
     int prevX, prevY; // Last x and y coordinates for drawing
 
-    bool setChartDimensions(const char direction, const int8_t size); //define dimensions and start points for chart
+    bool setChartDimensions(const char direction, const int8_t size); // define dimensions and start points for chart
     void drawChrt(const char chrtDir, const int8_t chrtIntv, GwApi::BoatValue& currValue); // Draw chart line
     void getBufferStartNSize(const int8_t chrtIntv); // Identify buffer size and buffer start position for chart
     void calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, double& rng); // Calculate chart points for value axis and return range between <min> and <max>
