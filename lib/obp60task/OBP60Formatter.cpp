@@ -587,7 +587,11 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 968 + float(random(0, 10));
             pressure = rawvalue;
         }
-        snprintf(buffer, bsize, "%4.0f", pressure);
+        if (pressure < 999.5) {
+            snprintf(buffer, bsize, "!%3.0f", pressure);
+        } else {
+            snprintf(buffer, bsize, "%4.0f", pressure);
+        }
         result.unit = "hPa";
         result.cvalue = pressure;
     }
@@ -603,7 +607,11 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = value->value;
             pressure = 968 + float(random(0, 10));
         }
-        snprintf(buffer, bsize, "%4.0f", pressure);
+        if (pressure < 999.5) {
+            snprintf(buffer, bsize, "!%3.0f", pressure);
+        } else {
+            snprintf(buffer, bsize, "%4.0f", pressure);
+        }
         result.unit = "mBar";
         result.cvalue = pressure;
     }
