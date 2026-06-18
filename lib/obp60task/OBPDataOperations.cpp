@@ -238,7 +238,7 @@ void HstryBuf::add(double value)
 {
     if (value >= hstryMin && value <= hstryMax) {
         hstryBuf.add(value);
-        LOG_DEBUG(GwLog::DEBUG, "HstryBuf::add:  name: %s, value: %.3f", hstryBuf.getName(), value);
+        // LOG_DEBUG(GwLog::DEBUG, "HstryBuf::add:  name: %s, value: %.3f, value buffer: %.3f", hstryBuf.getName(), value, hstryBuf.getLast());
     }
 }
 
@@ -492,10 +492,24 @@ bool WindUtils::calcTrueWinds(const double* awaVal, const double* awsVal, const 
     return true;
 }
 
+// Set max wind speed
+void WindUtils::setMaxWs(GwApi::BoatValue* wsMaxValue, const double* wsVal)
+{
+    static double maxWs = 0.0; // maintain own maxTWS value in obp user task; core gateway would reset MaxTWS obp boat value if true wind data is not available
+
+    if (*wsVal != DBL_MAX && *wsVal > maxWs) {
+        maxWs = *wsVal;
+    }
+
+    if ( maxWs > 0.0 && maxWs >= wsMaxValue->value) {
+        wsMaxValue->value = maxWs; // overwrite core gateway value each second again with own user task value if that value is larger
+        wsMaxValue->valid = true;
+    }
+};
+
 // Calculate true wind data and add to obp60task boat data list
 bool WindUtils::handleWinds(bool calcWinds)
 {
-    double twd, tws, twa, awd;
     bool twCalculated = false;
 
     double awaVal = awaBVal->valid ? awaBVal->value : DBL_MAX;
@@ -508,8 +522,6 @@ bool WindUtils::handleWinds(bool calcWinds)
     double varVal = varBVal->valid ? varBVal->value : DBL_MAX;
     double twaVal = twaBVal->valid ? twaBVal->value : DBL_MAX;
     double twsVal = twsBVal->valid ? twsBVal->value : DBL_MAX;
-    // LOG_DEBUG(GwLog::DEBUG, "WindUtils:handleWinds: AWA %.1f, AWS %.1f, AWD %.1f, COG %.1f, STW %.1f, SOG %.2f, HDT %.1f, HDM %.1f, VAR %.1f", awaVal * RAD_TO_DEG, awsVal * 3.6 / 1.852,
-    //     awd * RAD_TO_DEG, cogVal * RAD_TO_DEG, stwVal * 3.6 / 1.852, sogVal * 3.6 / 1.852, hdtVal * RAD_TO_DEG, hdmVal * RAD_TO_DEG, varVal * RAD_TO_DEG);
 
     if (calcHDT(&hdmVal, &varVal, &cogVal, &sogVal, &hdtVal)) {
         hdtBVal->value = hdtVal;

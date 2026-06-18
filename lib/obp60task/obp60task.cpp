@@ -265,6 +265,8 @@ void registerAllPages(PageList &list){
     list.add(&registerPageDigitalOut);
     extern PageDescription registerPageAutopilot;
     list.add(&registerPageAutopilot);
+//        extern PageDescription registerPageWeather;
+//    list.add(&registerPageWeather);
 }
 
 // Undervoltage detection for shutdown display
@@ -846,9 +848,12 @@ void OBP60Task(GwApi *api){
                 api->getBoatDataValues(boatValues.numValues,boatValues.allBoatValues);
                 api->getStatus(commonData.status);
 
+                // ulong startHndl = millis();
                 trueWind.handleWinds(calcTrueWnds); // calculate true wind data from apparent wind values
+                trueWind.setMaxWs(); // maintain MaxTWS value in any case; invalid TWS value is considered automatically
                 calibrationDataList.handleCalibration(&boatValues); // Process calibration for all boat data in <calibrationDataList>
                 hstryBufferList.handleHstryBufs(useSimuData, commonData); // Handle history buffers for certain boat data for charts and other usage
+                // LOG_DEBUG(GwLog::DEBUG, "obp60task: data handling: %d ms", millis() - startHndl);
 
                 // Clear display
                 // getdisplay().fillRect(0, 0, getdisplay().width(), getdisplay().height(), commonData.bgcolor);
