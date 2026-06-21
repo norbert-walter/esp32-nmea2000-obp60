@@ -44,6 +44,7 @@ Chart::Chart(RingBuffer<uint16_t>& dataBuf, double dfltRng, CommonData& common, 
     dbMIN_VAL = dataBuf.getMinVal();
     dbMAX_VAL = dataBuf.getMaxVal();
     bufSize = dataBuf.getCapacity();
+    LOG_DEBUG(GwLog::DEBUG, "Chart Init: dbMIN_VAL: %.2f, dbMAX_VAL: %.2fd, bufSize: %d", dbMIN_VAL, dbMAX_VAL, bufSize);
 
     smoothCharts = common.config->getBool(common.config->smoothCharts);
     if (smoothCharts) {
@@ -67,7 +68,7 @@ Chart::Chart(RingBuffer<uint16_t>& dataBuf, double dfltRng, CommonData& common, 
         chrtDataFmt = OTHER; // Chart is showing any other data format
     }
 
-    // "0" value is the same for any data format but for user defined temperature format
+    // "0" value is the same for any data format but for user defined temperature and pressure format
     zeroValue = 0.0;
     if (chrtDataFmt == TEMPERATURE) {
         tempFormat = commonData->config->getString(commonData->config->tempFormat); // [K|°C|°F]
@@ -113,7 +114,8 @@ Chart::~Chart()
 //             <prntName>;      print data name on horizontal half chart [true|false]
 //             <showCurrValue>: print current boat data value [true|false]
 //             <currValue>:     current boat data value; used only for test on valid data
-void Chart::showChrt(char chrtDir, int8_t chrtSz, const int8_t chrtIntv, bool prntName, bool showCurrValue, GwApi::BoatValue currValue)
+// void Chart::showChrt(ChrtDirection chrtDire, ChrtSize chrtSze, const int8_t chrtIntv, bool prntName, bool showCurrValue, GwApi::BoatValue currValue)
+void Chart::showChrt(const char chrtDir, const int8_t chrtSz, const int8_t chrtIntv, bool prntName, bool showCurrValue, GwApi::BoatValue currValue)
 {
     if (!setChartDimensions(chrtDir, chrtSz)) {
         return; // wrong chart dimension parameters
@@ -136,6 +138,7 @@ void Chart::showChrt(char chrtDir, int8_t chrtSz, const int8_t chrtIntv, bool pr
 }
 
 // define dimensions and start points for chart
+// bool Chart::setChartDimensions(const ChrtDirection direction, const ChrtSize size)
 bool Chart::setChartDimensions(const char direction, const int8_t size)
 {
     if ((direction != HORIZONTAL && direction != VERTICAL) || (size < 0 || size > 3)) {
@@ -201,10 +204,10 @@ void Chart::drawChrt(const char chrtDir, const int8_t chrtIntv, GwApi::BoatValue
 
     getBufferStartNSize(chrtIntv);
 
-    LOG_DEBUG(GwLog::DEBUG, "Chart:drawChart: min: %.1f, mid: %.1f, max: %.1f, rng: %.1f", chrtMin, chrtMid, chrtMax, chrtRng);
+    //    LOG_DEBUG(GwLog::DEBUG, "Chart:drawChart: min: %.1f, mid: %.1f, max: %.1f, rng: %.1f", chrtMin, chrtMid, chrtMax, chrtRng);
     calcChrtBorders(chrtMin, chrtMid, chrtMax, chrtRng);
     chrtScale = double(valAxis) / chrtRng; // Chart scale: pixels per value step
-    LOG_DEBUG(GwLog::DEBUG, "Chart:drawChart: min: %.1f, mid: %.1f, max: %.1f, rng: %.1f", chrtMin, chrtMid, chrtMax, chrtRng);
+    LOG_DEBUG(GwLog::DEBUG, "Chart:drawChart: min: %.1f, mid: %.1f, max: %.1f, rng: %.1f, data valid: %d", chrtMin, chrtMid, chrtMax, chrtRng, currValue.valid);
 
     // Do we have valid buffer data?
     if (dataBuf.getMax() == dbMAX_VAL) { // only <MAX_VAL> values in buffer -> no valid wind data available
@@ -219,7 +222,8 @@ void Chart::drawChrt(const char chrtDir, const int8_t chrtIntv, GwApi::BoatValue
         numNoData++;
         bufDataValid = true;
 
-        if (numNoData > THRESHOLD_NO_DATA) { // If more than 4 invalid values in a row, flag for invalid data
+        //        if (numNoData > THRESHOLD_NO_DATA) { // If more than 4 invalid values in a row, flag for invalid data
+        if (numNoData > THRESHOLD_NO_DATA * (dataBuf.getUpdFreq() / 1000)) { // If more than <THRESHOLD> invalid values in a row, flag for invalid data
             bufDataValid = false;
             return;
         }
@@ -234,17 +238,15 @@ void Chart::getBufferStartNSize(const int8_t chrtIntv)
     count = dataBuf.getCurrentSize();
     currIdx = dataBuf.getLastIdx();
     numAddedBufVals = (currIdx - lastAddedIdx + bufSize) % bufSize; // Number of values added to buffer since last display
+    lastAddedIdx = currIdx;
 
-    if (chrtIntv != oldChrtIntv || count == 1) {
-        // new data interval selected by user; this is only x * 230 values instead of 240 seconds (4 minutes) per interval step
+    if (chrtIntv != oldChrtIntv || count == 1) { // new data interval selected by user
         numBufVals = min(count, (timAxis - MIN_FREE_VALUES) * chrtIntv); // keep free or release MIN_FREE_VALUES on chart for plotting of new values
         bufStart = max(0, count - numBufVals);
-        lastAddedIdx = currIdx;
         oldChrtIntv = chrtIntv;
 
     } else {
         numBufVals = numBufVals + numAddedBufVals;
-        lastAddedIdx = currIdx;
         if (count == bufSize) {
             bufStart = max(0, bufStart - numAddedBufVals);
         }
@@ -347,6 +349,13 @@ void Chart::calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, doub
 
         rngMid = (rngMin + rngMax) / 2.0;
         rng = rngMax - rngMin;
+
+        // range values can be undefined if boat data type has not been created at time of chart printing (e.g. XDR data types)
+        auto chkIsNaN = [](double& val) { if (std::isnan(val)) val = 0.0; };
+        chkIsNaN(rngMin);
+        chkIsNaN(rngMid);
+        chkIsNaN(rngMax);
+        chkIsNaN(rng);
 
         LOG_DEBUG(GwLog::DEBUG, "calcChrtRange-end: currMinVal: %.1f, currMaxVal: %.1f, rngMin: %.1f, rngMid: %.1f, rngMax: %.1f, rng: %.1f, rngStep: %.1f, zeroValue: %.1f, dbMIN_VAL: %.1f",
             currMinVal, currMaxVal, rngMin, rngMid, rngMax, rng, rngStep, zeroValue, dbMIN_VAL);
@@ -592,9 +601,7 @@ void Chart::drawChrtValAxis(const char chrtDir, const int8_t chrtSz, bool prntNa
 // Print current data value
 void Chart::prntCurrValue(const char direction, GwApi::BoatValue& currValue)
 {
-    //    const int xPosVal = (direction == HORIZONTAL) ? cRoot.x + (timAxis / 2) - 56 : cRoot.x + 32;
-    //    const int yPosVal = (direction == HORIZONTAL) ? cRoot.y + valAxis - 7 : cRoot.y + timAxis - 7;
-    const int xPosVal = (direction == HORIZONTAL) ? cRoot.x + (timAxis / 2) - 73 : cRoot.x + 32;
+    const int xPosVal = (direction == HORIZONTAL) ? cRoot.x + (timAxis / 2) - 74 : cRoot.x + 31;
     const int yPosVal = (direction == HORIZONTAL) ? cRoot.y + valAxis : cRoot.y + timAxis;
 
     FormattedData frmtDbData = formatValue(&currValue, *commonData, NO_SIMUDATA);
@@ -602,27 +609,22 @@ void Chart::prntCurrValue(const char direction, GwApi::BoatValue& currValue)
     String dbUnit = frmtDbData.unit; // Unit of value; limit length to 3 characters
 
     // box
-    //    getdisplay().fillRect(xPosVal - 1, yPosVal - 35, 128, 41, bgColor); // Clear area for TWS value
-    //    getdisplay().drawRect(xPosVal, yPosVal - 34, 126, 40, fgColor); // Draw box for TWS value
-    getdisplay().fillRect(xPosVal - 1, yPosVal - 40, 146, 39, bgColor); // Clear area for TWS value
-    getdisplay().drawRect(xPosVal, yPosVal - 39, 144, 37, fgColor); // Draw box for TWS value
+    getdisplay().fillRect(xPosVal - 1, yPosVal - 40, 148, 39, bgColor); // Clear area for value
+    getdisplay().drawRect(xPosVal, yPosVal - 39, 146, 37, fgColor); // Draw box for value
 
     // value
     getdisplay().setFont(&DSEG7Classic_BoldItalic16pt7b);
     getdisplay().setCursor(xPosVal + 1, yPosVal - 6);
     getdisplay().print(sdbValue);
-    //    drawTextCenter(xPosVal + 70, yPosVal - 19, sdbValue);
 
     // name
     getdisplay().setFont(&Ubuntu_Bold10pt8b);
-    //    getdisplay().setCursor(xPosVal + 76, yPosVal - 17);
     getdisplay().setCursor(xPosVal + 100, yPosVal - 23);
     String name = xdrDelete(dbName);
     getdisplay().print(name.substring(0, 3)); // Name, limited to 3 characters
 
     // unit
     getdisplay().setFont(&Ubuntu_Bold8pt8b);
-    //    getdisplay().setCursor(xPosVal + 76, yPosVal + 0);
     getdisplay().setCursor(xPosVal + 101, yPosVal - 8);
     getdisplay().print(dbUnit);
 }
@@ -746,7 +748,6 @@ void Chart::prntHorizChartThreeValueAxisLabel(const GFXfont* font)
     } else {
         if (char* dot = strchr(sVal, '.'))
             *dot = '\0'; // no decimal for bottom axis label
-        //        snprintf(sVal, sizeof(sVal), "%3.0f", axLabel); // no decimal for bottom axis label
         getdisplay().fillRect(cRoot.x, cRoot.y + 2, xOffset + 3, yOffset, bgColor); // Clear small area to remove potential chart lines
         drawTextRalign(cRoot.x + xOffset, cRoot.y + yOffset, sVal); // range value
     }
@@ -774,7 +775,6 @@ void Chart::prntHorizChartThreeValueAxisLabel(const GFXfont* font)
     } else {
         if (char* dot = strchr(sVal, '.'))
             *dot = '\0'; // no decimal for bottom axis label
-        //        snprintf(sVal, sizeof(sVal), "%3.0f", axLabel); // no decimal for bottom axis label
         getdisplay().fillRect(cRoot.x, cRoot.y + valAxis - 14, xOffset + 3, yOffset, bgColor); // Clear small area to remove potential chart lines
         drawTextRalign(cRoot.x + xOffset, cRoot.y + valAxis, sVal); // range value
         getdisplay().drawLine(cRoot.x + xOffset + 3, cRoot.y + valAxis, cRoot.x + timAxis, cRoot.y + valAxis, fgColor);

@@ -265,8 +265,8 @@ void registerAllPages(PageList &list){
     list.add(&registerPageDigitalOut);
     extern PageDescription registerPageAutopilot;
     list.add(&registerPageAutopilot);
-//        extern PageDescription registerPageWeather;
-//    list.add(&registerPageWeather);
+    extern PageDescription registerPageWeather;
+    list.add(&registerPageWeather);
 }
 
 // Undervoltage detection for shutdown display
@@ -504,7 +504,8 @@ void OBP60Task(GwApi *api){
 
        // Read the specified boat data types of relevant pages and create a history buffer for each type for later use in charts
        // applies only for pages that uses charts
-       if (pages[i].parameters.pageName == "OneValue" || pages[i].parameters.pageName == "TwoValues" || pages[i].parameters.pageName == "WindPlot") {
+       if (pages[i].parameters.pageName == "OneValue" || pages[i].parameters.pageName == "TwoValues"
+          || pages[i].parameters.pageName == "WindPlot"  || pages[i].parameters.pageName == "Weather") {
            for (auto pVal : pages[i].parameters.values) {
                 hstryBufferList.addBuffer(pVal->getName());
            }
