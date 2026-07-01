@@ -3,17 +3,6 @@
 #include "OBPDataOperations.h"
 #include "OBPRingBuffer.h"
 
-// Default ranges for various boat data types: 1st value default range, 2nd value step for range adjustment
-// should be multiple of 4 for full integer chart labels w/o decimals
-std::map<String, ChartProps> Chart::dfltChrtDta = {
-    { "formatWind", { 60.0 * DEG_TO_RAD, 10.0 * DEG_TO_RAD } }, // default wind range 60 degrees
-    { "formatCourse", { 60.0 * DEG_TO_RAD, 10.0 * DEG_TO_RAD } }, // default course range 60 degrees
-    { "formatKnots", { 2.572, 2.572 } }, // default speed range in m/s
-    { "formatDepth", { 10.0, 5.0 } }, // default depth range in m
-    { "kelvinToC", { 20.0, 5.0 } }, // default temp range in °C/K
-    { "formatXdr:P:P", { 4000.0, 1000.0 } } // default pressure range in Pascal (hPa * 100); XDR <B> (bar) format is represented in gateway in the same way
-};
-
 // --- Class Chart ---------------
 
 // Chart - object holding the actual chart, incl. data buffer and format definition
@@ -21,9 +10,8 @@ std::map<String, ChartProps> Chart::dfltChrtDta = {
 //             <dfltRng> default range of chart, e.g. 30 = [0..30]
 //             <common> common program data; required for logger and color data
 //             <useSimuData> flag to indicate if simulation data is active
-Chart::Chart(RingBuffer<uint16_t>& dataBuf, double dfltRng, CommonData& common, bool useSimuData)
+Chart::Chart(RingBuffer<uint16_t>& dataBuf, CommonData& common, bool useSimuData)
     : dataBuf(dataBuf)
-    , dfltRng(dfltRng)
     , commonData(&common)
     , useSimuData(useSimuData)
 {
@@ -40,16 +28,30 @@ Chart::Chart(RingBuffer<uint16_t>& dataBuf, double dfltRng, CommonData& common, 
     dHeight = getdisplay().height();
 #endif
 
+    smoothCharts = commonData->config->getBool(commonData->config->smoothCharts);
+    if (smoothCharts) {
+        chrtAvg.begin();
+    }
+
+    init();
+};
+
+Chart::~Chart()
+{
+}
+
+bool Chart::init()
+{
+    chrtMin = 0.0;
+    chrtMax = 0.0;
+    chrtMid = 0.0;
+    chrtRng = 0.0;
+
     dataBuf.getMetaData(dbName, dbFormat);
     dbMIN_VAL = dataBuf.getMinVal();
     dbMAX_VAL = dataBuf.getMaxVal();
     bufSize = dataBuf.getCapacity();
     LOG_DEBUG(GwLog::DEBUG, "Chart Init: dbMIN_VAL: %.2f, dbMAX_VAL: %.2fd, bufSize: %d", dbMIN_VAL, dbMAX_VAL, bufSize);
-
-    smoothCharts = common.config->getBool(common.config->smoothCharts);
-    if (smoothCharts) {
-        chrtAvg.begin();
-    }
 
     // Initialize chart data format; shorter version of standard format indicator
     if (dbFormat == "formatCourse" || dbFormat == "formatWind") {
@@ -97,14 +99,18 @@ Chart::Chart(RingBuffer<uint16_t>& dataBuf, double dfltRng, CommonData& common, 
     chrtMax = chrtMin + dfltRng;
     chrtMid = (chrtMin + chrtMax) / 2;
     chrtRng = dfltRng;
-    recalcRngMid = true; // initialize <chrtMid> and chart borders on first screen call
+    recalcRngMid = true; // initialize <chrtMid> and chart borders on first chart display call
 
-    LOG_DEBUG(GwLog::DEBUG, "Chart Init: dWidth: %d, dHeight: %d, timAxis: %d, valAxis: %d, cRoot {x,y}: %d, %d, dbname: %s, rngStep: %.4f, chrtDataFmt: %d",
-        dWidth, dHeight, timAxis, valAxis, cRoot.x, cRoot.y, dbName, rngStep, chrtDataFmt);
-};
+    if (dbFormat.isEmpty()) {
+        // data buffer may not exist yet, because boat data object is not available yet
+        initValid = false; // chart object will get invalid data during initialization
+    } else {
+        initValid = true;
+    }
+    LOG_DEBUG(GwLog::DEBUG, "Chart Init: dWidth: %d, dHeight: %d, timAxis: %d, valAxis: %d, cRoot {x,y}: %d, %d, dbname: %s, rngStep: %.4f, chrtDataFmt: %d, initValid: %d",
+        dWidth, dHeight, timAxis, valAxis, cRoot.x, cRoot.y, dbName, rngStep, chrtDataFmt, initValid);
 
-Chart::~Chart()
-{
+    return isValid();
 }
 
 // Perform all actions to draw chart
@@ -325,8 +331,15 @@ void Chart::calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, doub
         double currMinVal = dataBuf.getMin(numBufVals);
         double currMaxVal = dataBuf.getMax(numBufVals);
 
-        if (currMinVal == dbMAX_VAL || currMaxVal == dbMAX_VAL) {
-            // return; // no valid data
+        if (currMinVal == dbMAX_VAL || currMaxVal == dbMAX_VAL) { // no valid data
+            auto chkIsNaN = [](double& val) { if (std::isnan(val)) val = 0.0; }; // define inline function
+            // range values can be undefined if boat data type has not been created at time of chart printing (e.g. XDR data types)
+            // we set them to "0.0" then
+            chkIsNaN(rngMin);
+            chkIsNaN(rngMid);
+            chkIsNaN(rngMax);
+            chkIsNaN(rng);
+            return;
         }
 
         // check if current chart border have to be adjusted
@@ -349,13 +362,6 @@ void Chart::calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, doub
 
         rngMid = (rngMin + rngMax) / 2.0;
         rng = rngMax - rngMin;
-
-        // range values can be undefined if boat data type has not been created at time of chart printing (e.g. XDR data types)
-        auto chkIsNaN = [](double& val) { if (std::isnan(val)) val = 0.0; };
-        chkIsNaN(rngMin);
-        chkIsNaN(rngMid);
-        chkIsNaN(rngMax);
-        chkIsNaN(rng);
 
         LOG_DEBUG(GwLog::DEBUG, "calcChrtRange-end: currMinVal: %.1f, currMaxVal: %.1f, rngMin: %.1f, rngMid: %.1f, rngMax: %.1f, rng: %.1f, rngStep: %.1f, zeroValue: %.1f, dbMIN_VAL: %.1f",
             currMinVal, currMaxVal, rngMin, rngMid, rngMax, rng, rngStep, zeroValue, dbMIN_VAL);

@@ -503,7 +503,7 @@ void OBP60Task(GwApi *api){
        }
 
        // Read the specified boat data types of relevant pages and create a history buffer for each type for later use in charts
-       // applies only for pages that uses charts
+       // applies only to pages that uses charts
        if (pages[i].parameters.pageName == "OneValue" || pages[i].parameters.pageName == "TwoValues"
           || pages[i].parameters.pageName == "WindPlot"  || pages[i].parameters.pageName == "Weather") {
            for (auto pVal : pages[i].parameters.values) {
@@ -512,7 +512,6 @@ void OBP60Task(GwApi *api){
        }
        // Add list of history buffers to page parameters
        pages[i].parameters.hstryBuffers = &hstryBufferList;
-
     }
 
     // add out of band system page (always available)

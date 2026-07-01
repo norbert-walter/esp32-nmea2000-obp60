@@ -20,26 +20,24 @@ class GwLog;
 
 class Chart {
 public:
+    /*    enum class ChrtDirection {
+            HORIZONTALE,
+            VERTICALE
+        };
 
-/*    enum class ChrtDirection {
-        HORIZONTALE,
-        VERTICALE
-    };
+        enum class ChrtSize {
+            FULL_SIZEE,
+            HALF_SIZE_LEFTE,
+            HALF_SIZE_RIGHTE,
+            TWO_THIRD_TOPE
+        }; */
 
-    enum class ChrtSize {
-        FULL_SIZEE,
-        HALF_SIZE_LEFTE,
-        HALF_SIZE_RIGHTE,
-        TWO_THIRD_TOPE
-    }; */
-
-    // Define default chart range and range step for each boat data type
-    static std::map<String, ChartProps> dfltChrtDta;
-
-    Chart(RingBuffer<uint16_t>& dataBuf, double dfltRng, CommonData& common, bool useSimuData); // Chart object of data chart
+    Chart(RingBuffer<uint16_t>& dataBuf, CommonData& common, bool useSimuData); // Chart object of data chart
     ~Chart();
+    bool init(); // initialize chart object parameters
+    bool isValid() { return initValid; }; // Checks if chart object has been fully initialized
     void showChrt(const char chrtDir, const int8_t chrtSz, const int8_t chrtIntv, bool prntName, bool showCurrValue, GwApi::BoatValue currValue); // Perform all actions to draw chart
-//    void showChrt(ChrtDirection chrtDir, ChrtSize chrtSz, const int8_t chrtIntv, bool prntName, bool showCurrValue, GwApi::BoatValue currValue); // Perform all actions to draw chart
+    //    void showChrt(ChrtDirection chrtDir, ChrtSize chrtSz, const int8_t chrtIntv, bool prntName, bool showCurrValue, GwApi::BoatValue currValue); // Perform all actions to draw chart
 
 protected:
     CommonData* commonData;
@@ -69,6 +67,7 @@ protected:
     static constexpr bool NO_SIMUDATA = true; // switch off simulation feature of <formatValue> function
 
     RingBuffer<uint16_t>& dataBuf; // Buffer to display
+    bool initValid = false; // indicates whether object holds valid initialization data or not
     double dfltRng; // Default range of chart, e.g. 30 = [0..30]
     uint16_t fgColor; // color code for any screen writing
     uint16_t bgColor; // color code for screen background
@@ -113,8 +112,19 @@ protected:
     int x, y; // x and y coordinates for drawing
     int prevX, prevY; // Last x and y coordinates for drawing
 
+    // Default ranges for various boat data types
+    // Parameters: <1st value> default range, <2nd value> step for range adjustment
+    std::map<String, ChartProps> dfltChrtDta = {
+        { "formatWind", { 60.0 * DEG_TO_RAD, 10.0 * DEG_TO_RAD } }, // default wind range 60 degrees
+        { "formatCourse", { 60.0 * DEG_TO_RAD, 10.0 * DEG_TO_RAD } }, // default course range 60 degrees
+        { "formatKnots", { 2.572, 2.572 } }, // default speed range in m/s
+        { "formatDepth", { 10.0, 5.0 } }, // default depth range in m
+        { "kelvinToC", { 20.0, 5.0 } }, // default temp range in °C/K
+        { "formatXdr:P:P", { 4000.0, 1000.0 } } // default pressure range in Pascal (hPa * 100); XDR <B> (bar) format is represented in gateway in the same way
+    };
+
     bool setChartDimensions(const char direction, const int8_t size); // define dimensions and start points for chart
-//    bool setChartDimensions(const ChrtDirection direction, const ChrtSize size); // define dimensions and start points for chart
+    //    bool setChartDimensions(const ChrtDirection direction, const ChrtSize size); // define dimensions and start points for chart
     void drawChrt(const char chrtDir, const int8_t chrtIntv, GwApi::BoatValue& currValue); // Draw chart line
     void getBufferStartNSize(const int8_t chrtIntv); // Identify buffer size and buffer start position for chart
     void calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, double& rng); // Calculate chart points for value axis and return range between <min> and <max>
