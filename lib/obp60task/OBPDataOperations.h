@@ -89,8 +89,8 @@ private:
         { "TWS", { 1000, 1000, 0.0, 65.0 } },
         { "WTemp", { 1000, 100, 263.15, 403.15 } }, // water temp [-10..130] °C
         { "formatXdr:C:K", { 1000, 100, 223.15, 423.15 } }, // temperature [-50..150] deg celsius
-        { "formatXdr:P:B", { 1000, 1000, 0, 65.0 } }, // pressure [0..65] bar
-        { "formatXdr:P:P", { 5000, 0.1, 0, 650000 } }, // pressure [0..6500] hPa
+        { "formatXdr:P:B", { 60000, 1000, 0, 65.0 } }, // pressure [0..65] bar
+        { "formatXdr:P:P", { 60000, 0.1, 0, 650000 } }, // pressure [0..6500] hPa
         { "formatXdr:H:P", { 1000, 100, 0, 100 } }, // humidity [0..100] percent
         { "formatXdr:I:A", { 1000, 100, 0, 650.0 } }, // current [0..650] amperes
         { "formatXdr:U:V", { 1000, 1000, 0, 65.0 } }, // voltage [0..65] volts
