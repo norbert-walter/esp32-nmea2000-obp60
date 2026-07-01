@@ -66,6 +66,8 @@ bool Chart::init()
         chrtDataFmt = TEMPERATURE;
     } else if (dbFormat.startsWith("formatXdr:P")) {
         chrtDataFmt = PRESSURE;
+    } else if (dbFormat.startsWith("formatXdr:H")) {
+        chrtDataFmt = HUMIDITY;
     } else {
         chrtDataFmt = OTHER; // Chart is showing any other data format
     }
@@ -438,7 +440,7 @@ void Chart::drawChartLines(const char direction, const int8_t chrtIntv, const do
                 }
             }
 
-            if (chrtDataFmt == DEPTH || chrtDataFmt == PRESSURE) {
+            if (chrtDataFmt == DEPTH) {
                 if (direction == HORIZONTAL) { // horizontal chart
                     drawBoldLine(point.x, point.y, point.x, cRoot.y + valAxis);
                 } else { // vertical chart
@@ -477,10 +479,10 @@ Pos Chart::setCurrentChartPoint(const int i, const char direction, const double 
 
         if (chrtDataFmt == WIND || chrtDataFmt == ROTATION) { // degree type value
             currentPoint.y = cRoot.y + static_cast<int>((WindUtils::to2PI(chrtVal - chrtMin) * chrtScale) + 0.5); // calculate chart point and round
-        } else if (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE || chrtDataFmt == PRESSURE) { // speed or temperature data format -> print low values at bottom
-            currentPoint.y = cRoot.y + valAxis - static_cast<int>(((chrtVal - chrtMin) * chrtScale) + 0.5); // calculate chart point and round
-        } else { // any other data format
+        } else if (chrtDataFmt == WIND || chrtDataFmt == ROTATION || chrtDataFmt == DEPTH) { // print low values at bottom
             currentPoint.y = cRoot.y + static_cast<int>(((chrtVal - chrtMin) * chrtScale) + 0.5); // calculate chart point and round
+        } else { // any other data format
+            currentPoint.y = cRoot.y + valAxis - static_cast<int>(((chrtVal - chrtMin) * chrtScale) + 0.5); // calculate chart point and round
         }
 
     } else { // vertical chart
@@ -745,7 +747,7 @@ void Chart::prntHorizChartThreeValueAxisLabel(const GFXfont* font)
     chrtMax = convertValue(this->chrtMax, dbName, dbFormat, *commonData);
 
     // print top axis label
-    axLabel = (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE || chrtDataFmt == PRESSURE) ? chrtMax : chrtMin;
+    axLabel = (chrtDataFmt == WIND || chrtDataFmt == ROTATION || chrtDataFmt == DEPTH) ? chrtMin : chrtMax;
     formatLabel(axLabel).toCharArray(sVal, 11);
     if (chrtDataFmt == PRESSURE) {
         snprintf(sVal, sizeof(sVal), "%4.0f", axLabel);
@@ -753,7 +755,7 @@ void Chart::prntHorizChartThreeValueAxisLabel(const GFXfont* font)
         drawTextRalign(cRoot.x + xOffset + 11, cRoot.y + yOffset, sVal); // range value
     } else {
         if (char* dot = strchr(sVal, '.'))
-            *dot = '\0'; // no decimal for bottom axis label
+            *dot = '\0'; // no decimal for top axis label
         getdisplay().fillRect(cRoot.x, cRoot.y + 2, xOffset + 3, yOffset, bgColor); // Clear small area to remove potential chart lines
         drawTextRalign(cRoot.x + xOffset, cRoot.y + yOffset, sVal); // range value
     }
@@ -772,7 +774,7 @@ void Chart::prntHorizChartThreeValueAxisLabel(const GFXfont* font)
     }
 
     // print bottom axis label
-    axLabel = (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE || chrtDataFmt == PRESSURE) ? chrtMin : chrtMax;
+    axLabel = (chrtDataFmt == WIND || chrtDataFmt == ROTATION || chrtDataFmt == DEPTH) ? chrtMax : chrtMin;
     formatLabel(axLabel).toCharArray(sVal, 11);
     if (chrtDataFmt == PRESSURE) {
         getdisplay().fillRect(cRoot.x, cRoot.y + valAxis - 14, xOffset + 12, yOffset, bgColor); // Clear small area to remove potential chart lines
@@ -813,15 +815,16 @@ void Chart::prntHorizChartMultiValueAxisLabel(const GFXfont* font)
     // LOG_DEBUG(GwLog::DEBUG, "Chart::printHorizMultiValueAxisLabel: chrtRng: %.2f, th-chrtRng: %.2f, axSlots: %.2f, axIntv: %.2f, axLabel: %.2f, chrtMin: %.2f, chrtMid: %.2f, chrtMax: %.2f", chrtRng, this->chrtRng, VALAXIS_SLOTS, axIntv, axLabel, this->chrtMin, chrtMid, chrtMax);
 
     int loopStrt, loopEnd, loopStp;
-    if (chrtDataFmt == SPEED || chrtDataFmt == TEMPERATURE || chrtDataFmt == PRESSURE || chrtDataFmt == OTHER) {
-        loopStrt = valAxis - valAxisStep;
-        loopEnd = valAxisStep / 2;
-        loopStp = valAxisStep * -1;
-    } else {
+    if (chrtDataFmt == WIND || chrtDataFmt == ROTATION || chrtDataFmt == DEPTH) {
         // Low value at top
         loopStrt = valAxisStep;
         loopEnd = valAxis - (valAxisStep / 2);
         loopStp = valAxisStep;
+    } else {
+        // high value at top
+        loopStrt = valAxis - valAxisStep;
+        loopEnd = valAxisStep / 2;
+        loopStp = valAxisStep * -1;
     }
 
     for (int j = loopStrt; (loopStp > 0) ? (j < loopEnd) : (j > loopEnd); j += loopStp) {

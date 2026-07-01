@@ -50,6 +50,7 @@ protected:
         DEPTH,
         TEMPERATURE,
         PRESSURE,
+        HUMIDITY,
         OTHER
     };
 
