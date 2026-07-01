@@ -178,13 +178,13 @@ public:
             if (key == 2) {
 #endif
                 if (dataIntv == 1) {
-                    dataIntv = 3;
-                } else if (dataIntv == 3) {
-                    dataIntv = 6;
-                } else if (dataIntv == 6) {
+                    dataIntv = 2;
+                } else if (dataIntv == 2) {
+                    dataIntv = 4;
+                } else if (dataIntv == 4) {
+                    dataIntv = 8;
+                } else if (dataIntv == 8) {
                     dataIntv = 12;
-                } else if (dataIntv == 12) {
-                    dataIntv = 24;
                 } else {
                     dataIntv = 1;
                 }
