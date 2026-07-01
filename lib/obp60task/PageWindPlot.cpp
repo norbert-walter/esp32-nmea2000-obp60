@@ -168,10 +168,10 @@ public:
             twsHstry = pageData.hstryBuffers->getBuffer("TWS");
 
             if (twdHstry) {
-                twdChart.reset(new Chart(*twdHstry, Chart::dfltChrtDta["formatCourse"].range, *commonData, useSimuData));
+                twdChart.reset(new Chart(*twdHstry, *commonData, useSimuData));
             }
             if (twsHstry) {
-                twsChart.reset(new Chart(*twsHstry, Chart::dfltChrtDta["formatKnots"].range, *commonData, useSimuData));
+                twsChart.reset(new Chart(*twsHstry, *commonData, useSimuData));
             }
         }
 
@@ -180,10 +180,10 @@ public:
             awsHstry = pageData.hstryBuffers->getBuffer("AWS");
 
             if (awdHstry) {
-                awdChart.reset(new Chart(*awdHstry, Chart::dfltChrtDta["formatCourse"].range, *commonData, useSimuData));
+                awdChart.reset(new Chart(*awdHstry, *commonData, useSimuData));
             }
             if (awsHstry) {
-                awsChart.reset(new Chart(*awsHstry, Chart::dfltChrtDta["formatKnots"].range, *commonData, useSimuData));
+                awsChart.reset(new Chart(*awsHstry, *commonData, useSimuData));
             }
             if (twdHstry && twsHstry && awdHstry && awsHstry) {
                 LOG_DEBUG(GwLog::DEBUG, "PageWindPlot: Created wind charts");

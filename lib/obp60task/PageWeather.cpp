@@ -110,8 +110,8 @@ private:
 
         // print lines for data separation of bottom data values
         getdisplay().fillRect(0, 191, 400, 2, commonData->fgcolor); // horizontal line
-        getdisplay().fillRect(133, 192, 2, 83, commonData->fgcolor); // vertical lines
-        getdisplay().fillRect(266, 192, 2, 83, commonData->fgcolor);
+        getdisplay().fillRect(133, 192, 2, 84, commonData->fgcolor); // vertical lines
+        getdisplay().fillRect(266, 192, 2, 84, commonData->fgcolor);
     }
 
 public:
@@ -218,20 +218,18 @@ public:
                 String bValFormat = bValue->getFormat(); // Value format
 
                 dataHstryBuf[i] = pageData.hstryBuffers->getBuffer(bValName);
-                //                if (dataHstryBuf[i]->getFormat() == "") { // data format might have been unknown at time of buffer creation
-                //                    dataHstryBuf[i]->setFormat(bValFormat); // in that case, we specify it here, because we need it for printing of buffer data
-                //                }
+//                if (dataHstryBuf[i]->getFormat() == "") { // data format might have been unknown at time of buffer creation
+//                    dataHstryBuf[i]->setFormat(bValFormat); // in that case, we specify it here, because we need it for printing of buffer data
+//                }
 
                 if (dataHstryBuf[i]) {
-                    dataChart[i].reset(new Chart(*dataHstryBuf[i], Chart::dfltChrtDta[bValFormat].range, *commonData, useSimuData));
+                    dataChart[i].reset(new Chart(*dataHstryBuf[i], *commonData, useSimuData));
                     LOG_DEBUG(GwLog::DEBUG, "PageWeather: Created chart object %d for %s, format: %s", i, bValName.c_str(), dataHstryBuf[i]->getFormat().c_str());
                 } else {
                     LOG_DEBUG(GwLog::DEBUG, "PageWeather: No chart object available for %s", bValName.c_str());
                 }
             }
         }
-
-        setupKeys(); // Adjust key definition depending on <pageMode> and chart-supported boat data type
     }
 
     int displayPage(PageData& pageData)
@@ -265,24 +263,23 @@ public:
 
         displaySetPartialWindow(0, 0, width, height); // Set partial update
 
-        if (dataHstryBuf != nullptr) {
-            if (dataHstryBuf[0]->getFormat() == "") { // data format might have been unknown at time of buffer creation
-                dataHstryBuf[0]->setFormat(bValue[0]->getFormat()); // in that case, we specify it here, because we need it for printing of buffer data
-            }
-
-            //        if (pageMode == VAL_CHART && dataHstryBuf != nullptr) {
-            if (pageMode == VAL_CHART) {
-                if (dataChart[0]) {
-                    dataChart[0]->showChrt(HORIZONTAL, TWO_THIRD_TOP, dataIntv, PRNT_NAME, PRNT_VALUE, *bValue[0]);
-                }
-                showData(bValue);
-
-            } else if (pageMode == CHART) { // show only data chart
-                if (dataChart[0]) {
-                    dataChart[0]->showChrt(HORIZONTAL, FULL_SIZE, dataIntv, PRNT_NAME, PRNT_VALUE, *bValue[0]);
-                }
-            }
+        if (dataHstryBuf == nullptr) { // no buffer for main boat data item, no page display
+            return PAGE_UPDATE;
         }
+        if (!dataChart[0]->isValid()) {
+            dataChart[0]->init(); // try late initialization if chart object could not be properly initialized earlier due to missing boat data
+        }
+
+        if (pageMode == VAL_CHART) {
+            if (dataChart[0]) {
+                dataChart[0]->showChrt(HORIZONTAL, TWO_THIRD_TOP, dataIntv, PRNT_NAME, PRNT_VALUE, *bValue[0]);
+            }
+            showData(bValue);
+
+        } else if (pageMode == CHART && dataChart[0]) { // show only data chart, but that has to exist
+            dataChart[0]->showChrt(HORIZONTAL, FULL_SIZE, dataIntv, PRNT_NAME, PRNT_VALUE, *bValue[0]);
+        }
+
         return PAGE_UPDATE;
     };
 };
