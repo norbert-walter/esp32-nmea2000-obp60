@@ -87,8 +87,8 @@ private:
         { "TWA", { 1000, 10000, 0.0, M_TWOPI } },
         { "TWD", { 1000, 10000, 0.0, M_TWOPI } },
         { "TWS", { 1000, 1000, 0.0, 65.0 } },
-        { "WTemp", { 1000, 100, 263.0, 403.0 } }, // water temp [-10..130] °C
-        { "formatXdr:C:K", { 1000, 100, 223.0, 473.15 } }, // temperature [-50..200] deg celsius
+        { "WTemp", { 1000, 100, 263.15, 403.15 } }, // water temp [-10..130] °C
+        { "formatXdr:C:K", { 1000, 100, 223.15, 423.15 } }, // temperature [-50..150] deg celsius
         { "formatXdr:P:B", { 1000, 1000, 0, 65.0 } }, // pressure [0..65] bar
         { "formatXdr:P:P", { 5000, 0.1, 0, 650000 } }, // pressure [0..6500] hPa
         { "formatXdr:H:P", { 1000, 100, 0, 100 } }, // humidity [0..100] percent
