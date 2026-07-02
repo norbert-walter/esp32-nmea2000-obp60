@@ -6,7 +6,8 @@
 const int SixValues_x1 = 5;
 const int SixValues_DeltaX = 200;
 
-const int SixValues_y1 = 23;
+// const int SixValues_y1 = 23;
+const int SixValues_y1 = 22;
 const int SixValues_DeltaY = 83;
 
 const int HowManyValues = 6;
@@ -96,39 +97,38 @@ class PageSixValues : public Page
     
             // Show unit
                     getdisplay().setFont(&Ubuntu_Bold8pt8b);
-                    getdisplay().setCursor(x0, y0+72);
                     if(holdvalues == false){
-                        getdisplay().print(DataUnits[ValueIndex]);                       // Unit
+                        drawTextRalign(x0+187, y0+19, DataUnits[ValueIndex]);          // Unit
                         }
                     else{
-                        getdisplay().print(OldDataUnits[ValueIndex]);
+                        drawTextRalign(x0+187, y0+19, OldDataUnits[ValueIndex]);
                         }
     
-            // Switch font if format for any values
+            // Switch font depending on data type
                     if(DataFormat[ValueIndex] == "formatLatitude" || DataFormat[ValueIndex] == "formatLongitude"){
                         getdisplay().setFont(&Ubuntu_Bold12pt8b);
-                        getdisplay().setCursor(x0+10, y0+60);
+                        getdisplay().setCursor(x0+21, y0+60);
                         }
                     else if(DataFormat[ValueIndex] == "formatTime" || DataFormat[ValueIndex] == "formatDate"){
                         getdisplay().setFont(&Ubuntu_Bold16pt8b);
-                        getdisplay().setCursor(x0+20,y0+55);
+                        getdisplay().setCursor(x0+23,y0+55);
                         } 
             // pressure in hPa          
                     else if(DataFormat[ValueIndex] == "formatXdr:P:P"){
                         getdisplay().setFont(&DSEG7Classic_BoldItalic26pt7b);
-                        getdisplay().setCursor(x0+5, y0+70);
+                        getdisplay().setCursor(x0+23, y0+79);
                      }
             // RPM
                      else if(DataFormat[ValueIndex] == "formatXdr:T:R"){
                         getdisplay().setFont(&DSEG7Classic_BoldItalic16pt7b);
-                        getdisplay().setCursor(x0+25, y0+70);
+                        getdisplay().setCursor(x0+23, y0+79);
                      }
                     else{
                         getdisplay().setFont(&DSEG7Classic_BoldItalic26pt7b);
                         if ( DataText[ValueIndex][0] == '-' )
-                            getdisplay().setCursor(x0+25, y0+70);
+                            getdisplay().setCursor(x0+23, y0+79);
                         else
-                            getdisplay().setCursor(x0+65, y0+70);
+                            getdisplay().setCursor(x0+65, y0+79);
                         }
     
             // Show bus data
