@@ -6,8 +6,9 @@
  * Consists of some sub-pages with following content:
  *   1. Hard and software information
  *   2. System settings
- *   3. NMEA2000 device list
- *   4. SD Card information if available
+ *   3. WiFi settings + message info
+ *   4. NMEA2000 device list
+ *   5. SD Card information if available
  */
 
 #include "Pagedata.h"
@@ -51,6 +52,9 @@ private:
     double homelat;
     double homelon;
 
+    String systemName;
+    String apPasswd;
+
     char mode = 'N'; // (N)ormal, (S)ettings, (C)onfiguration, (D)evice list, c(A)rd
 
 #ifdef PATCH_N2K
@@ -68,7 +72,10 @@ private:
         if (mode == 'N') {        // Normal
             mode = 'S';
         } else if (mode == 'S') { // Settings
-            mode = 'C';
+            mode = 'W';
+        } else if (mode == 'W') { // Wifi
+//            mode = 'C';
+            mode = 'D';
         } else if (mode == 'C') { // Config
             mode = 'D';
         } else if (mode == 'D') { // Device list
@@ -91,10 +98,13 @@ private:
             }
         } else if (mode == 'S') { // Settings
             mode = 'N';
-        } else if (mode == 'C') { // Config
+        } else if (mode == 'W') { // Wifi
             mode = 'S';
+        } else if (mode == 'C') { // Config
+            mode = 'W';
         } else if (mode == 'D') { // Device list
-            mode = 'C';
+//            mode = 'C';
+            mode = 'W';
         } else {
             mode = 'D';
         }
@@ -235,7 +245,7 @@ private:
 
         getdisplay().setFont(&Ubuntu_Bold12pt8b);
         getdisplay().setCursor(8, 48);
-        getdisplay().print("System configuration");
+        getdisplay().print("System Configuration");
 
 		getdisplay().setFont(&Ubuntu_Bold8pt8b);
 
@@ -260,7 +270,7 @@ private:
 
         getdisplay().setFont(&Ubuntu_Bold12pt8b);
         getdisplay().setCursor(x0, 48);
-        getdisplay().print("System settings");
+        getdisplay().print("System Settings");
 
         getdisplay().setFont(&Ubuntu_Bold8pt8b);
 
@@ -358,6 +368,101 @@ private:
 #endif
 	}
 
+    void displayModeNetwork() {
+        // View current network state
+
+        const uint16_t x0 = 5;
+        const uint16_t x1 = 210;
+        const uint16_t y0 = 72;
+        const uint16_t y1 = 170;
+        const uint16_t dy = 16;
+
+        String msgCount;
+
+        getdisplay().setFont(&Ubuntu_Bold12pt8b);
+        getdisplay().setCursor(x0, 48);
+        getdisplay().print("Network Status");
+
+        getdisplay().setFont(&Ubuntu_Bold8pt8b);
+
+        getdisplay().setCursor(x0, y0);
+        getdisplay().print("Messages in/out:");
+
+        // left column
+        getdisplay().setCursor(x0, y0 + 1 * dy);
+        getdisplay().print("N2k:");
+        msgCount = String(commonData->status.n2kRx) + "/" + String(commonData->status.n2kTx);
+        getdisplay().setCursor(x0 + 80, y0 + 1 * dy);
+        getdisplay().print(msgCount);
+
+        getdisplay().setCursor(x0, y0 + 2 * dy);
+        getdisplay().print("TCPsrv:");
+        msgCount = String(commonData->status.tcpSerRx) + "/" + String(commonData->status.tcpSerTx);
+        getdisplay().setCursor(x0 + 80, y0 + 2 * dy);
+        getdisplay().print(msgCount);
+
+        getdisplay().setCursor(x0, y0 + 3 * dy);
+        getdisplay().print("TCPclnt:");
+        msgCount = String(commonData->status.tcpClRx) + "/" + String(commonData->status.tcpClTx);
+        getdisplay().setCursor(x0 + 80, y0 + 3 * dy);
+        getdisplay().print(msgCount);
+
+        // right column
+        getdisplay().setCursor(x1, y0 + 1 * dy);
+        getdisplay().print("UDP:");
+        msgCount = String(commonData->status.udprRx) + "/" + String(commonData->status.udpwTx);
+        getdisplay().setCursor(x1 + 80, y0 + 1 * dy);
+        getdisplay().print(msgCount);
+
+        getdisplay().setCursor(x1, y0 + 2 * dy);
+        getdisplay().print("Serial:");
+        msgCount = String(commonData->status.serRx) + "/" + String(commonData->status.serTx);
+        getdisplay().setCursor(x1 + 80, y0 + 2 * dy);
+        getdisplay().print(msgCount);
+
+        getdisplay().setCursor(x1, y0 + 3 * dy);
+        getdisplay().print("USB:");
+        msgCount = String(commonData->status.usbRx) + "/" + String(commonData->status.usbTx);
+        getdisplay().setCursor(x1 + 80, y0 + 3 * dy);
+        getdisplay().print(msgCount);
+
+        // Wifi state
+        getdisplay().setCursor(x0, y1 + 0 * dy);
+        getdisplay().print("Wifi:");
+
+        getdisplay().setCursor(x0, y1 + 1 * dy);
+        getdisplay().print("Access point:");
+        getdisplay().setCursor(x0 + 120, y1 + 1 * dy);
+        getdisplay().print(commonData->status.wifiApOn ? "on" : "off");
+
+        getdisplay().setCursor(x0, y1 + 2 * dy);
+        getdisplay().print("SSID:");
+        getdisplay().setCursor(x0 + 120, y1 + 2 * dy);
+        getdisplay().print(systemName);
+
+        getdisplay().setCursor(x0, y1 + 3 * dy);
+        getdisplay().print("IP address:");
+        getdisplay().setCursor(x0 + 120, y1 + 3 * dy);
+        getdisplay().print(commonData->status.wifiApIp);
+
+        getdisplay().setCursor(x0, y1 + 4 * dy + 5);
+        getdisplay().print("Client WiFi:");
+        getdisplay().setCursor(x0 + 120, y1 + 4 * dy + 5);
+        getdisplay().print(commonData->status.wifiClientOn ? "on" : "off");
+
+        getdisplay().setCursor(x0, y1 + 5 * dy + 5);
+        getdisplay().print("SSID:");
+        getdisplay().setCursor(x0 + 120, y1 + 5 * dy + 5);
+        getdisplay().print(commonData->status.wifiClientSSID);
+
+        getdisplay().setCursor(x0, y1 + 6 * dy + 5);
+        getdisplay().print("IP address:");
+        getdisplay().setCursor(x0+ 120, y1 + 6 * dy + 5);
+        getdisplay().print(commonData->status.wifiClientIp);
+
+        displayWifiBarcode(systemName, apPasswd, 320, y1, 2);
+    }
+
     void displayModeSDCard() {
 
         // SD Card info
@@ -366,7 +471,7 @@ private:
 
         getdisplay().setFont(&Ubuntu_Bold12pt8b);
         getdisplay().setCursor(8, 48);
-        getdisplay().print("SD Card info");
+        getdisplay().print("SD Card Info");
 
         getdisplay().setFont(&Ubuntu_Bold8pt8b);
         getdisplay().setCursor(x0, y0);
@@ -511,6 +616,8 @@ public:
         homelat = common.config->getString(common.config->homeLAT).toDouble();
         homelon = common.config->getString(common.config->homeLON).toDouble();
         flashLED = common.config->getString(common.config->flashLED);
+        systemName = common.config->getString(common.config->systemName);
+        apPasswd = common.config->getString(common.config->apPassword);
     }
 
     void setupKeys() {
@@ -596,6 +703,30 @@ public:
         }
     }
 
+    void displayWifiBarcode(String ssid, String passwd, uint16_t x, uint16_t y, uint16_t s) {
+        // Barcode for wifi access point
+        // x, y is top left corner
+        // s is pixel size of a single box
+
+        QRCode qrcode;
+        uint8_t qrcodeData[qrcode_getBufferSize(4)];
+        String text = "WIFI:S:" + String(ssid) + ";T:WPA;P:" + String(passwd) + ";;"; // Content for QR code: "WIFI:S:mySSID;T:WPA;P:myPASSWORD;;"
+        const char *qrcodecontent = text.c_str();
+
+        qrcode_initText(&qrcode, qrcodeData, 4, 0, qrcodecontent);
+        int16_t x0 = x;
+        for (uint8_t j = 0; j < qrcode.size; j++) {
+            for (uint8_t i = 0; i < qrcode.size; i++) {
+                if (qrcode_getModule(&qrcode, i, j)) {
+                    getdisplay().fillRect(x, y, s, s, commonData->fgcolor);
+                }
+                x += s;
+            }
+            y += s;
+            x = x0;
+        }
+    }
+
     void displayNew(PageData &pageData) {
 #ifdef BOARD_OBP60S3
         // Clear optical warning
@@ -644,6 +775,9 @@ public:
                 break;
             case 'S':
                 displayModeSettings();
+                break;
+            case 'W':
+                displayModeNetwork();
                 break;
             case 'C':
                 displayModeConfig();
