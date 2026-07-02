@@ -428,7 +428,7 @@ private:
 
         // Wifi state
         getdisplay().setCursor(x0, y1 + 0 * dy);
-        getdisplay().print("Wifi:");
+        getdisplay().print("WiFi:");
 
         getdisplay().setCursor(x0, y1 + 1 * dy);
         getdisplay().print("Access point:");
