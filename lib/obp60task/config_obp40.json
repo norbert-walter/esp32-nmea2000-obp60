@@ -1590,6 +1590,7 @@
             "ThreeValues",
             "TwoValues",
             "Voltage",
+            "Weather",
             "WhitePage",
             "Wind",
             "WindPlot",
@@ -1637,6 +1638,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -1671,6 +1673,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -1703,6 +1706,7 @@
                 "FourValues2",
                 "SixValues",
                 "ThreeValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -1734,6 +1738,7 @@
                 "FourValues",
                 "FourValues2",
                 "SixValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -1923,6 +1928,7 @@
             "ThreeValues",
             "TwoValues",
             "Voltage",
+            "Weather",
             "WhitePage",
             "Wind",
             "WindPlot",
@@ -1969,6 +1975,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2002,6 +2009,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2033,6 +2041,7 @@
                 "FourValues2",
                 "SixValues",
                 "ThreeValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2063,6 +2072,7 @@
                 "FourValues",
                 "FourValues2",
                 "SixValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2247,6 +2257,7 @@
             "ThreeValues",
             "TwoValues",
             "Voltage",
+            "Weather",
             "WhitePage",
             "Wind",
             "WindPlot",
@@ -2292,6 +2303,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2324,6 +2336,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2354,6 +2367,7 @@
                 "FourValues2",
                 "SixValues",
                 "ThreeValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2383,6 +2397,7 @@
                 "FourValues",
                 "FourValues2",
                 "SixValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2562,6 +2577,7 @@
             "ThreeValues",
             "TwoValues",
             "Voltage",
+            "Weather",
             "WhitePage",
             "Wind",
             "WindPlot",
@@ -2606,6 +2622,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2637,6 +2654,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2666,6 +2684,7 @@
                 "FourValues2",
                 "SixValues",
                 "ThreeValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2694,6 +2713,7 @@
                 "FourValues",
                 "FourValues2",
                 "SixValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2868,6 +2888,7 @@
             "ThreeValues",
             "TwoValues",
             "Voltage",
+            "Weather",
             "WhitePage",
             "Wind",
             "WindPlot",
@@ -2911,6 +2932,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2941,6 +2963,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -2996,6 +3019,7 @@
                 "FourValues",
                 "FourValues2",
                 "SixValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -3165,6 +3189,7 @@
             "ThreeValues",
             "TwoValues",
             "Voltage",
+            "Weather",
             "WhitePage",
             "Wind",
             "WindPlot",
@@ -3207,6 +3232,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -3236,6 +3262,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -3263,6 +3290,7 @@
                 "FourValues2",
                 "SixValues",
                 "ThreeValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -3289,6 +3317,7 @@
                 "FourValues",
                 "FourValues2",
                 "SixValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -3453,6 +3482,7 @@
             "ThreeValues",
             "TwoValues",
             "Voltage",
+            "Weather",
             "WhitePage",
             "Wind",
             "WindPlot",
@@ -3494,6 +3524,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -3522,6 +3553,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -3548,6 +3580,7 @@
                 "FourValues2",
                 "SixValues",
                 "ThreeValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -3573,6 +3606,7 @@
                 "FourValues",
                 "FourValues2",
                 "SixValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -3732,6 +3766,7 @@
             "ThreeValues",
             "TwoValues",
             "Voltage",
+            "Weather",
             "WhitePage",
             "Wind",
             "WindPlot",
@@ -3772,6 +3807,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -3799,6 +3835,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -3824,6 +3861,7 @@
                 "FourValues2",
                 "SixValues",
                 "ThreeValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -3848,6 +3886,7 @@
                 "FourValues",
                 "FourValues2",
                 "SixValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -4002,6 +4041,7 @@
             "ThreeValues",
             "TwoValues",
             "Voltage",
+            "Weather",
             "WhitePage",
             "Wind",
             "WindPlot",
@@ -4041,6 +4081,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -4067,6 +4108,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -4091,6 +4133,7 @@
                 "FourValues2",
                 "SixValues",
                 "ThreeValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -4114,6 +4157,7 @@
                 "FourValues",
                 "FourValues2",
                 "SixValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -4263,6 +4307,7 @@
             "ThreeValues",
             "TwoValues",
             "Voltage",
+            "Weather",
             "WhitePage",
             "Wind",
             "WindPlot",
@@ -4301,6 +4346,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -4326,6 +4372,7 @@
                 "SixValues",
                 "ThreeValues",
                 "TwoValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -4349,6 +4396,7 @@
                 "FourValues2",
                 "SixValues",
                 "ThreeValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [
@@ -4371,6 +4419,7 @@
                 "FourValues",
                 "FourValues2",
                 "SixValues",
+                "Weather",
                 "WindRoseFlex"
             ],
             "visiblePages": [

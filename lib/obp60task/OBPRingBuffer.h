@@ -45,9 +45,9 @@ private:
     size_t last; // Points to the last (newest) valid element
     size_t count; // Number of valid elements currently in buffer
     bool is_Full; // Indicates that all buffer elements are used and ringing is in use
-    T MIN_VAL; // lowest possible value of buffer of type <T>
-    T MAX_VAL; // highest possible value of buffer of type <T> -> indicates invalid value in buffer
-    double dblMIN_VAL, dblMAX_VAL; // MIN_VAL, MAX_VAL in double format
+    T NUMLIMIT_LOW; // internally lowest possible value of buffer of type <T>
+    T NUMLIMIT_HIGH; // internally highest possible value of buffer of type <T>
+    double BUFMIN_VAL, BUFMAX_VAL;  // lowest/highest possible buffer value considering multiplier -> externally used
     mutable SemaphoreHandle_t bufLocker;
 
     // metadata for buffer
@@ -55,8 +55,8 @@ private:
     String dataFmt; // Format of boat data in buffer
     int updFreq; // Update frequency in milliseconds
     double mltplr; // Multiplier which transforms original <double> value into buffer type format
-    double smallest; // Value range of buffer: smallest value; needs to be => MIN_VAL
-    double largest; // Value range of buffer: biggest value; needs to be < MAX_VAL, since MAX_VAL indicates invalid entries
+    double lowest; // low value range for boat data in this buffer; needs to be => BUFMIN_VAL
+    double highest; // high value range for boat data in this buffer; needs to be < BUFMAX_VAL, since BUFMAX_VAL indicates invalid entries
 
     void initCommon();
 
@@ -64,10 +64,12 @@ public:
     RingBuffer();
     RingBuffer(size_t size);
     void setMetaData(String name, String format, int updateFrequency, double multiplier, double minValue, double maxValue); // Set meta data for buffer
+    void setFormat(String format); // Specify format of buffer
     bool getMetaData(String& name, String& format, int& updateFrequency, double& multiplier, double& minValue, double& maxValue); // Get meta data of buffer
     bool getMetaData(String& name, String& format);
     String getName() const; // Get buffer name
     String getFormat() const; // Get buffer data format
+    int getUpdFreq() const; // Get buffer update frequency
     void add(const double& value); // Add a new value to  buffer
     double get(size_t index) const; // Get value at specific position (0-based index from oldest to newest)
     double getFirst() const; // Get the first (oldest) value in buffer

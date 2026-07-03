@@ -519,11 +519,11 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
         }
         if (String(tempFormat) == "C") {
             temp = temp - 273.15;
-            result.unit = "C";
+            result.unit = "Deg C";
         }
         else if (String(tempFormat) == "F") {
             temp = (temp - 273.15) * 9 / 5 + 32;
-            result.unit = "F";
+            result.unit = "Deg F";
         }
         else{
             result.unit = "K";
@@ -587,7 +587,11 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = 968 + float(random(0, 10));
             pressure = rawvalue;
         }
-        snprintf(buffer, bsize, "%4.0f", pressure);
+        if (pressure < 999.5) {
+            snprintf(buffer, bsize, "!%3.0f", pressure);
+        } else {
+            snprintf(buffer, bsize, "%4.0f", pressure);
+        }
         result.unit = "hPa";
         result.cvalue = pressure;
     }
@@ -603,7 +607,11 @@ FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool 
             rawvalue = value->value;
             pressure = 968 + float(random(0, 10));
         }
-        snprintf(buffer, bsize, "%4.0f", pressure);
+        if (pressure < 999.5) {
+            snprintf(buffer, bsize, "!%3.0f", pressure);
+        } else {
+            snprintf(buffer, bsize, "%4.0f", pressure);
+        }
         result.unit = "mBar";
         result.cvalue = pressure;
     }

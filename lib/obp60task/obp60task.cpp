@@ -265,6 +265,8 @@ void registerAllPages(PageList &list){
     list.add(&registerPageDigitalOut);
     extern PageDescription registerPageAutopilot;
     list.add(&registerPageAutopilot);
+    extern PageDescription registerPageWeather;
+    list.add(&registerPageWeather);
 }
 
 // Undervoltage detection for shutdown display
@@ -501,15 +503,15 @@ void OBP60Task(GwApi *api){
        }
 
        // Read the specified boat data types of relevant pages and create a history buffer for each type for later use in charts
-       // applies only for pages that uses charts
-       if (pages[i].parameters.pageName == "OneValue" || pages[i].parameters.pageName == "TwoValues" || pages[i].parameters.pageName == "WindPlot") {
+       // applies only to pages that uses charts
+       if (pages[i].parameters.pageName == "OneValue" || pages[i].parameters.pageName == "TwoValues"
+          || pages[i].parameters.pageName == "WindPlot"  || pages[i].parameters.pageName == "Weather") {
            for (auto pVal : pages[i].parameters.values) {
                 hstryBufferList.addBuffer(pVal->getName());
            }
        }
        // Add list of history buffers to page parameters
        pages[i].parameters.hstryBuffers = &hstryBufferList;
-
     }
 
     // add out of band system page (always available)
@@ -846,9 +848,12 @@ void OBP60Task(GwApi *api){
                 api->getBoatDataValues(boatValues.numValues,boatValues.allBoatValues);
                 api->getStatus(commonData.status);
 
+                // ulong startHndl = millis();
                 trueWind.handleWinds(calcTrueWnds); // calculate true wind data from apparent wind values
+                trueWind.setMaxWs(); // maintain MaxTWS value in any case; invalid TWS value is considered automatically
                 calibrationDataList.handleCalibration(&boatValues); // Process calibration for all boat data in <calibrationDataList>
                 hstryBufferList.handleHstryBufs(useSimuData, commonData); // Handle history buffers for certain boat data for charts and other usage
+                // LOG_DEBUG(GwLog::DEBUG, "obp60task: data handling: %d ms", millis() - startHndl);
 
                 // Clear display
                 // getdisplay().fillRect(0, 0, getdisplay().width(), getdisplay().height(), commonData.bgcolor);

@@ -203,7 +203,7 @@ public:
 #if defined BOARD_OBP60S3
             if (key == 5 && pageMode != VALUES) {
 #elif defined BOARD_OBP40S3
-            if (key == 2  && pageMode != VALUES) {
+            if (key == 2 && pageMode != VALUES) {
 #endif
                 if (dataIntv == 1) {
                     dataIntv = 2;
@@ -246,8 +246,8 @@ public:
                 dataHstryBuf[i] = pageData.hstryBuffers->getBuffer(bValName);
 
                 if (dataHstryBuf[i]) {
-                    dataChart[i].reset(new Chart(*dataHstryBuf[i], Chart::dfltChrtDta[bValFormat].range, *commonData, useSimuData));
-                    LOG_DEBUG(GwLog::DEBUG, "PageTwoValues: Created chart object%d for %s", i, bValName.c_str());
+                    dataChart[i].reset(new Chart(*dataHstryBuf[i], *commonData, useSimuData));
+                    LOG_DEBUG(GwLog::DEBUG, "PageTwoValues: Created chart object %d for %s", i, bValName.c_str());
                 } else {
                     LOG_DEBUG(GwLog::DEBUG, "PageTwoValues: No chart object available for %s", bValName.c_str());
                 }
@@ -283,6 +283,12 @@ public:
 
         displaySetPartialWindow(0, 0, width, height); // Set partial update
 
+        for (int i = 0; i < NUMVALUES; i++) {
+            if (!dataChart[i]->isValid()) {
+                dataChart[i]->init(); // try late initialization if chart object could not be properly initialized earlier due to missing boat data
+            }
+        }
+        
         if (pageMode == VALUES || (dataHstryBuf[0] == nullptr && dataHstryBuf[1] == nullptr)) {
             // show only data value; ignore other pageMode options if no chart supported boat data history buffer is available
             showData(bValue, FULL);

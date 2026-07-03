@@ -223,13 +223,13 @@ HstryBuf::HstryBuf(const String& name, int size, BoatValueList* boatValues, GwLo
     boatValue = boatValues->findValueOrCreate(name);
 }
 
-void HstryBuf::init(const String& format, int updFreq, int mltplr, double minVal, double maxVal)
+void HstryBuf::init(const String& format, int updFreq, double mltplr, double minVal, double maxVal)
 {
     hstryBuf.setMetaData(boatDataName, format, updFreq, mltplr, minVal, maxVal);
     hstryMin = minVal;
     hstryMax = maxVal;
+    bufUpdateTime = 0;
     if (!boatValue->valid) {
-        boatValue->setFormat(format);
         boatValue->value = std::numeric_limits<double>::max(); // mark current value invalid
     }
 }
@@ -238,25 +238,32 @@ void HstryBuf::add(double value)
 {
     if (value >= hstryMin && value <= hstryMax) {
         hstryBuf.add(value);
-        // LOG_DEBUG(GwLog::DEBUG, "HstryBuf::add:  name: %s, value: %.3f", hstryBuf.getName(), value);
+        // LOG_DEBUG(GwLog::DEBUG, "HstryBuf::add:  name: %s, value: %.3f, value buffer: %.3f", hstryBuf.getName(), value, hstryBuf.getLast());
     }
 }
 
 void HstryBuf::handle(bool useSimuData, CommonData& common)
 {
-    std::unique_ptr<GwApi::BoatValue> tmpBVal; // Temp variable to get formatted and converted data value from OBP60Formatter
+    if ((millis() - bufUpdateTime) >= hstryBuf.getUpdFreq()) {
 
-    if (boatValue->valid) {
-        add(boatValue->value);
-    } else if (useSimuData) { // add simulated value to history buffer
-        tmpBVal = std::unique_ptr<GwApi::BoatValue>(new GwApi::BoatValue(boatDataName)); // create temporary boat value for retrieval of simulation value
-        tmpBVal->setFormat(boatValue->getFormat());
-        tmpBVal->value = boatValue->value;
-        tmpBVal->valid = boatValue->valid;
-        double simSIValue = formatValue(tmpBVal.get(), common).value; // simulated value is generated at <formatValue>; here: retreive SI value
-        add(simSIValue);
-    } else {
-        // here we will add invalid (DBL_MAX) value; this will mark periods of missing data in buffer together with a timestamp
+        bufUpdateTime = millis();
+        // LOG_DEBUG(GwLog::DEBUG, "HstryBuf::handle:  name: %s, frequency: %d, format: %s, value: %.3f", hstryBuf.getName(), hstryBuf.getUpdFreq(),
+        //     boatValue->getFormat().c_str(), boatValue->value);
+
+        if (boatValue->valid) {
+            add(boatValue->value);
+
+        } else if (useSimuData) { // add simulated value to history buffer
+            std::unique_ptr<GwApi::BoatValue> tmpBVal; // Temp variable to get formatted and converted data value from OBP60Formatter
+            tmpBVal = std::unique_ptr<GwApi::BoatValue>(new GwApi::BoatValue(boatDataName)); // create temporary boat value for retrieval of simulation value
+            tmpBVal->setFormat(boatValue->getFormat());
+            tmpBVal->value = boatValue->value;
+            tmpBVal->valid = boatValue->valid;
+            double simSIValue = formatValue(tmpBVal.get(), common).value; // simulated value is generated at <formatValue>; here: retreive SI value
+            add(simSIValue);
+        } else {
+            // here we will add invalid (DBL_MAX) value; this will mark periods of missing data in buffer together with a timestamp
+        }
     }
 }
 // --- End Class HstryBuf ---------------
@@ -273,21 +280,16 @@ void HstryBuffers::addBuffer(const String& name)
     if (HstryBuffers::getBuffer(name) != nullptr) { // buffer for this data type already exists
         return;
     }
-    if (bufferParams.find(name) == bufferParams.end()) { // requested boat data type is not supported in list of <bufferParams>
+
+    auto it = bufferParams.find(name);
+    if (it == bufferParams.end() && !name.startsWith("xdr")) { // requested boat data type is not supported in list of <bufferParams>
+                                                               // we take any "XDR" type, though
         return;
     }
 
-    // Initialize metadata for buffer
-    String valueFormat = bufferParams[name].format; // Data format of boat data type
-    // String valueFormat = boatValueList->findValueOrCreate(name)->getFormat().c_str(); // Unfortunately, format is not yet available during system initialization
-    int hstryUpdFreq = bufferParams[name].hstryUpdFreq; // Update frequency for history buffers in ms
-    int mltplr = bufferParams[name].mltplr; // default multiplier which transforms original <double> value into buffer type format
-    double bufferMinVal = bufferParams[name].bufferMinVal; // Min value for this history buffer
-    double bufferMaxVal = bufferParams[name].bufferMaxVal; // Max value for this history buffer
-
+    // create buffer only; initialization with metadata can only be done later after boat data have been updated first time
     hstryBuffers[name] = std::unique_ptr<HstryBuf>(new HstryBuf(name, size, boatValueList, logger));
-    hstryBuffers[name]->init(valueFormat, hstryUpdFreq, mltplr, bufferMinVal, bufferMaxVal);
-    LOG_DEBUG(GwLog::DEBUG, "HstryBuffers: new buffer added: name: %s, format: %s, multiplier: %d, min value: %.2f, max value: %.2f", name, valueFormat, mltplr, bufferMinVal, bufferMaxVal);
+    LOG_DEBUG(GwLog::DEBUG, "HstryBuffers: new buffer added: name: %s", name);
 }
 
 // Handle all registered history buffers
@@ -295,6 +297,35 @@ void HstryBuffers::handleHstryBufs(bool useSimuData, CommonData& common)
 {
     for (auto& bufMap : hstryBuffers) {
         auto& buf = bufMap.second;
+
+        if (!buf->hasMetaData()) { // meta data initialization for buffer has not been done before
+
+            String valueFormat = boatValueList->findValueOrCreate(buf->boatDataName)->getFormat().c_str();
+            LOG_DEBUG(GwLog::DEBUG, "HstryBuffers: value name: %s, format: %s", boatValueList->findValueOrCreate(buf->boatDataName)->getName().c_str(), valueFormat);
+
+            if (!valueFormat.isEmpty()) {
+                String lookupKey = buf->boatDataName;
+                if (buf->boatDataName.startsWith("xdr")) { // current boat data is of type "XDR"
+                    lookupKey = valueFormat;
+                }
+                auto it = bufferParams.find(lookupKey);
+                if (it == bufferParams.end()) { // requested boat data type is not supported in list of <bufferParams>
+                    return;
+                }
+                HistoryParams params = it->second; // this is the metadata for the new buffer
+
+                int hstryUpdFreq = params.hstryUpdFreq; // Update frequency for history buffers in ms
+                double mltplr = params.mltplr; // default multiplier which transforms original <double> value into buffer type format
+                double bufferMinVal = params.bufferMinVal; // Min value for this history buffer
+                double bufferMaxVal = params.bufferMaxVal; // Max value for this history buffer
+
+                hstryBuffers[buf->boatDataName]->init(valueFormat, hstryUpdFreq, mltplr, bufferMinVal, bufferMaxVal);
+                buf->metaDataDefined = true;
+                LOG_DEBUG(GwLog::DEBUG, "HstryBuffers::handleBufs: metadata added: name: %s, format: %s, frequency: %d, multiplier: %f, min value: %.2f, max value: %.2f", buf->boatDataName, valueFormat, hstryUpdFreq,
+                    mltplr, bufferMinVal, bufferMaxVal);
+            }
+        }
+
         buf->handle(useSimuData, common);
     }
 }
@@ -461,10 +492,24 @@ bool WindUtils::calcTrueWinds(const double* awaVal, const double* awsVal, const 
     return true;
 }
 
+// Set max wind speed
+void WindUtils::setMaxWs(GwApi::BoatValue* wsMaxValue, const double* wsVal)
+{
+    static double maxWs = 0.0; // maintain own maxTWS value in obp user task; core gateway would reset MaxTWS obp boat value if true wind data is not available
+
+    if (*wsVal != DBL_MAX && *wsVal > maxWs) {
+        maxWs = *wsVal;
+    }
+
+    if ( maxWs > 0.0 && maxWs >= wsMaxValue->value) {
+        wsMaxValue->value = maxWs; // overwrite core gateway value each second again with own user task value if that value is larger
+        wsMaxValue->valid = true;
+    }
+};
+
 // Calculate true wind data and add to obp60task boat data list
 bool WindUtils::handleWinds(bool calcWinds)
 {
-    double twd, tws, twa, awd;
     bool twCalculated = false;
 
     double awaVal = awaBVal->valid ? awaBVal->value : DBL_MAX;
@@ -477,8 +522,6 @@ bool WindUtils::handleWinds(bool calcWinds)
     double varVal = varBVal->valid ? varBVal->value : DBL_MAX;
     double twaVal = twaBVal->valid ? twaBVal->value : DBL_MAX;
     double twsVal = twsBVal->valid ? twsBVal->value : DBL_MAX;
-    // LOG_DEBUG(GwLog::DEBUG, "WindUtils:handleWinds: AWA %.1f, AWS %.1f, AWD %.1f, COG %.1f, STW %.1f, SOG %.2f, HDT %.1f, HDM %.1f, VAR %.1f", awaVal * RAD_TO_DEG, awsVal * 3.6 / 1.852,
-    //     awd * RAD_TO_DEG, cogVal * RAD_TO_DEG, stwVal * 3.6 / 1.852, sogVal * 3.6 / 1.852, hdtVal * RAD_TO_DEG, hdmVal * RAD_TO_DEG, varVal * RAD_TO_DEG);
 
     if (calcHDT(&hdmVal, &varVal, &cogVal, &sogVal, &hdtVal)) {
         hdtBVal->value = hdtVal;

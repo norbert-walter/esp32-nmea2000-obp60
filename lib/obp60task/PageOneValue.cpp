@@ -76,10 +76,10 @@ private:
             nameYoff = -34;
             nameFnt = &Ubuntu_Bold20pt8b;
             unitXoff = -295;
-            unitYoff = -119;
+            unitYoff = 21;
             unitFnt = &Ubuntu_Bold12pt8b;
             valueFnt1 = &Ubuntu_Bold12pt8b;
-            value1Xoff = 153;
+            value1Xoff = 111;
             value1Yoff = -119;
             valueFnt2 = &Ubuntu_Bold20pt8b;
             valueFnt3 = &DSEG7Classic_BoldItalic42pt7b;
@@ -100,7 +100,7 @@ private:
 
         // Show unit
         getdisplay().setFont(unitFnt);
-        getdisplay().setCursor(305 + unitXoff, 240 + unitYoff);
+        getdisplay().setCursor(305 + unitXoff, 100 + unitYoff);
 
         if (holdValues) {
             getdisplay().print(unit1Old); // name
@@ -243,7 +243,7 @@ public:
             dataHstryBuf = pageData.hstryBuffers->getBuffer(bValName1);
 
             if (dataHstryBuf) {
-                dataChart.reset(new Chart(*dataHstryBuf, Chart::dfltChrtDta[bValFormat].range, *commonData, useSimuData));
+                dataChart.reset(new Chart(*dataHstryBuf, *commonData, useSimuData));
                 LOG_DEBUG(GwLog::DEBUG, "PageOneValue: Created chart objects for %s", bValName1);
             } else {
                 LOG_DEBUG(GwLog::DEBUG, "PageOneValue: No chart objects available for %s", bValName1);
@@ -275,6 +275,10 @@ public:
         //***********************************************************
 
         displaySetPartialWindow(0, 0, width, height); // Set partial update
+
+        if (!dataChart->isValid()) {
+            dataChart->init(); // try late initialization if chart object could not be properly initialized earlier due to missing boat data
+        }
 
         if (pageMode == VALUE || dataHstryBuf == nullptr) {
             // show only data value; ignore other pageMode options if no chart supported boat data history buffer is available
