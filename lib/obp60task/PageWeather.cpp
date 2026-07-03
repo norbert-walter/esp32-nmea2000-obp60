@@ -13,22 +13,6 @@ private:
         VAL_CHART,
         CHART
     };
-    /*    enum DisplayMode {
-            FULL,
-            HALF
-        }; */
-
-    static constexpr char HORIZONTAL = 'H';
-    static constexpr char VERTICAL = 'V';
-    static constexpr int8_t FULL_SIZE = 0;
-    static constexpr int8_t HALF_SIZE_TOP = 1;
-    static constexpr int8_t HALF_SIZE_BOTTOM = 2;
-    static constexpr int8_t TWO_THIRD_TOP = 3;
-
-    static constexpr bool PRNT_NAME = true;
-    static constexpr bool NO_PRNT_NAME = false;
-    static constexpr bool PRNT_VALUE = true;
-    static constexpr bool NO_PRNT_VALUE = false;
 
     static constexpr int XOFFSET = 133; // x offset for display of boat values
 
@@ -125,7 +109,6 @@ public:
         height = getdisplay().height(); // Screen height
 
         // Get config data
-        // lengthformat = commonData->config->getString(commonData->config->lengthFormat);
         useSimuData = commonData->config->getBool(commonData->config->useSimuData);
         holdValues = commonData->config->getBool(commonData->config->holdvalues);
         flashLED = commonData->config->getString(commonData->config->flashLED);
@@ -218,9 +201,6 @@ public:
                 String bValFormat = bValue->getFormat(); // Value format
 
                 dataHstryBuf[i] = pageData.hstryBuffers->getBuffer(bValName);
-//                if (dataHstryBuf[i]->getFormat() == "") { // data format might have been unknown at time of buffer creation
-//                    dataHstryBuf[i]->setFormat(bValFormat); // in that case, we specify it here, because we need it for printing of buffer data
-//                }
 
                 if (dataHstryBuf[i]) {
                     dataChart[i].reset(new Chart(*dataHstryBuf[i], *commonData, useSimuData));
@@ -234,8 +214,6 @@ public:
 
     int displayPage(PageData& pageData)
     {
-
-        //    using CD = Chart::ChrtDirection;
 
         LOG_DEBUG(GwLog::LOG, "Display PageWeather");
 
@@ -272,12 +250,12 @@ public:
 
         if (pageMode == VAL_CHART) {
             if (dataChart[0]) {
-                dataChart[0]->showChrt(HORIZONTAL, TWO_THIRD_TOP, dataIntv, PRNT_NAME, PRNT_VALUE, *bValue[0]);
+                dataChart[0]->showChrt(Chart::HORIZONTAL, Chart::TWO_THIRD_TOP, dataIntv, Chart::PRNT_NAME, Chart::PRNT_VALUE, *bValue[0]);
             }
             showData(bValue);
 
         } else if (pageMode == CHART && dataChart[0]) { // show only data chart, but that has to exist
-            dataChart[0]->showChrt(HORIZONTAL, FULL_SIZE, dataIntv, PRNT_NAME, PRNT_VALUE, *bValue[0]);
+            dataChart[0]->showChrt(Chart::HORIZONTAL, Chart::FULL_SIZE, dataIntv, Chart::PRNT_NAME, Chart::PRNT_VALUE, *bValue[0]);
         }
 
         return PAGE_UPDATE;

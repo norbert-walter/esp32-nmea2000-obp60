@@ -20,17 +20,6 @@ private:
         HALF
     };
 
-    static constexpr char HORIZONTAL = 'H';
-    static constexpr char VERTICAL = 'V';
-    static constexpr int8_t FULL_SIZE = 0;
-    static constexpr int8_t HALF_SIZE_TOP = 1;
-    static constexpr int8_t HALF_SIZE_BOTTOM = 2;
-
-    static constexpr bool PRNT_NAME = true;
-    static constexpr bool NO_PRNT_NAME = false;
-    static constexpr bool PRNT_VALUE = true;
-    static constexpr bool NO_PRNT_VALUE = false;
-
     static constexpr int YOFFSET = 130; // y offset for display of 2nd boat value
 
     int width; // Screen width
@@ -296,28 +285,28 @@ public:
         } else if (pageMode == VAL1_CHART) { // show data value 1 and chart
             showData({ bValue[0] }, HALF);
             if (dataChart[0]) {
-                dataChart[0]->showChrt(HORIZONTAL, HALF_SIZE_BOTTOM, dataIntv, NO_PRNT_NAME, NO_PRNT_VALUE, *bValue[0]);
+                dataChart[0]->showChrt(Chart::HORIZONTAL, Chart::HALF_SIZE_RIGHT_BOTTOM, dataIntv, Chart::NO_PRNT_NAME, Chart::NO_PRNT_VALUE, *bValue[0]);
             }
 
         } else if (pageMode == VAL2_CHART) { // show data value 2 and chart
             showData({ bValue[1] }, HALF);
             if (dataChart[1]) {
-                dataChart[1]->showChrt(HORIZONTAL, HALF_SIZE_BOTTOM, dataIntv, NO_PRNT_NAME, NO_PRNT_VALUE, *bValue[1]);
+                dataChart[1]->showChrt(Chart::HORIZONTAL, Chart::HALF_SIZE_RIGHT_BOTTOM, dataIntv, Chart::NO_PRNT_NAME, Chart::NO_PRNT_VALUE, *bValue[1]);
             }
 
         } else if (pageMode == CHARTS) { // show both data charts
             if (dataChart[0]) {
                 if (dataChart[1]) {
-                    dataChart[0]->showChrt(HORIZONTAL, HALF_SIZE_TOP, dataIntv, PRNT_NAME, PRNT_VALUE, *bValue[0]);
+                    dataChart[0]->showChrt(Chart::HORIZONTAL, Chart::HALF_SIZE_LEFT_TOP, dataIntv, Chart::PRNT_NAME, Chart::PRNT_VALUE, *bValue[0]);
                 } else {
-                    dataChart[0]->showChrt(HORIZONTAL, FULL_SIZE, dataIntv, PRNT_NAME, PRNT_VALUE, *bValue[0]);
+                    dataChart[0]->showChrt(Chart::HORIZONTAL, Chart::FULL_SIZE, dataIntv, Chart::PRNT_NAME, Chart::PRNT_VALUE, *bValue[0]);
                 }
             }
             if (dataChart[1]) {
                 if (dataChart[0]) {
-                    dataChart[1]->showChrt(HORIZONTAL, HALF_SIZE_BOTTOM, dataIntv, PRNT_NAME, PRNT_VALUE, *bValue[1]);
+                    dataChart[1]->showChrt(Chart::HORIZONTAL, Chart::HALF_SIZE_RIGHT_BOTTOM, dataIntv, Chart::PRNT_NAME, Chart::PRNT_VALUE, *bValue[1]);
                 } else {
-                    dataChart[1]->showChrt(HORIZONTAL, FULL_SIZE, dataIntv, PRNT_NAME, PRNT_VALUE, *bValue[1]);
+                    dataChart[1]->showChrt(Chart::HORIZONTAL, Chart::FULL_SIZE, dataIntv, Chart::PRNT_NAME, Chart::PRNT_VALUE, *bValue[1]);
                 }
             }
         }

@@ -20,24 +20,28 @@ class GwLog;
 
 class Chart {
 public:
-    /*    enum class ChrtDirection {
-            HORIZONTALE,
-            VERTICALE
-        };
+    enum ChrtDir {
+        HORIZONTAL,
+        VERTICAL
+    };
 
-        enum class ChrtSize {
-            FULL_SIZEE,
-            HALF_SIZE_LEFTE,
-            HALF_SIZE_RIGHTE,
-            TWO_THIRD_TOPE
-        }; */
+    enum ChrtSize {
+        FULL_SIZE,
+        HALF_SIZE_LEFT_TOP,
+        HALF_SIZE_RIGHT_BOTTOM,
+        TWO_THIRD_TOP
+    };
+
+    static constexpr bool PRNT_NAME = true;
+    static constexpr bool NO_PRNT_NAME = false;
+    static constexpr bool PRNT_VALUE = true;
+    static constexpr bool NO_PRNT_VALUE = false;
 
     Chart(RingBuffer<uint16_t>& dataBuf, CommonData& common, bool useSimuData); // Chart object of data chart
     ~Chart();
     bool init(); // initialize chart object parameters
     bool isValid() { return initValid; }; // Checks if chart object has been fully initialized
-    void showChrt(const char chrtDir, const int8_t chrtSz, const int8_t chrtIntv, bool prntName, bool showCurrValue, GwApi::BoatValue currValue); // Perform all actions to draw chart
-    //    void showChrt(ChrtDirection chrtDir, ChrtSize chrtSz, const int8_t chrtIntv, bool prntName, bool showCurrValue, GwApi::BoatValue currValue); // Perform all actions to draw chart
+    void showChrt(const ChrtDir chrtDir, const ChrtSize chrtSz, const int8_t chrtIntv, bool prntName, bool showCurrValue, GwApi::BoatValue currValue); // Perform all actions to draw chart
 
 protected:
     CommonData* commonData;
@@ -53,13 +57,6 @@ protected:
         HUMIDITY,
         OTHER
     };
-
-    static constexpr char HORIZONTAL = 'H';
-    static constexpr char VERTICAL = 'V';
-    static constexpr int8_t FULL_SIZE = 0;
-    static constexpr int8_t HALF_SIZE_LEFT = 1;
-    static constexpr int8_t HALF_SIZE_RIGHT = 2;
-    static constexpr int8_t TWO_THIRD_TOP = 3;
 
     static constexpr int8_t MIN_FREE_VALUES = 60; // free 60 values when chart line reaches chart end
     static constexpr int8_t THRESHOLD_NO_DATA = 3; // max. seconds of invalid values in a row
@@ -124,17 +121,16 @@ protected:
         { "formatXdr:P:P", { 4000.0, 1000.0 } } // default pressure range in Pascal (hPa * 100); XDR <B> (bar) format is represented in gateway in the same way
     };
 
-    bool setChartDimensions(const char direction, const int8_t size); // define dimensions and start points for chart
-    //    bool setChartDimensions(const ChrtDirection direction, const ChrtSize size); // define dimensions and start points for chart
-    void drawChrt(const char chrtDir, const int8_t chrtIntv, GwApi::BoatValue& currValue); // Draw chart line
+    bool setChartDimensions(const ChrtDir direction, const ChrtSize chrtSz); // define dimensions and start points for chart
+    void drawChrt(const ChrtDir chrtDir, const int8_t chrtIntv, GwApi::BoatValue& currValue); // Draw chart line
     void getBufferStartNSize(const int8_t chrtIntv); // Identify buffer size and buffer start position for chart
     void calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, double& rng); // Calculate chart points for value axis and return range between <min> and <max>
-    void drawChartLines(const char direction, const int8_t chrtIntv, const double chrtScale); // Draw chart graph
-    Pos setCurrentChartPoint(const int i, const char direction, const double chrtVal, const double chrtScale); // Set current chart point to draw
-    void drawChrtTimeAxis(const char chrtDir, const int8_t chrtSz, const int8_t chrtIntv); // Draw time axis of chart, value and lines
-    void drawChrtValAxis(const char chrtDir, const int8_t chrtSz, bool prntLabel); // Draw value axis of chart, value and lines
-    void prntCurrValue(const char chrtDir, GwApi::BoatValue& currValue); // Add current boat data value to chart
-    void prntNoValidData(const char chrtDir); // print message for no valid data available
+    void drawChartLines(const ChrtDir direction, const int8_t chrtIntv, const double chrtScale); // Draw chart graph
+    Pos setCurrentChartPoint(const int i, const ChrtDir chrtDir, const double chrtVal, const double chrtScale); // Set current chart point to draw
+    void drawChrtTimeAxis(const ChrtDir chrtDir, const ChrtSize chrtSz, const int8_t chrtIntv); // Draw time axis of chart, value and lines
+    void drawChrtValAxis(const ChrtDir chrtDir, const ChrtSize chrtSz, const bool prntLabel); // Draw value axis of chart, value and lines
+    void prntCurrValue(const ChrtDir chrtDir, GwApi::BoatValue& currValue); // Add current boat data value to chart
+    void prntNoValidData(const ChrtDir chrtDir); // print message for no valid data available
     double getAngleRng(const double center, size_t amount); // Calculate range between chart center and edges
     void prntVerticChartThreeValueAxisLabel(const GFXfont* font); // print value axis label with only three values: top, mid, and bottom for vertical chart
     void prntHorizChartThreeValueAxisLabel(const GFXfont* font); // print value axis label with only three values: top, mid, and bottom for horizontal chart

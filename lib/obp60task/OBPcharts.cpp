@@ -103,8 +103,7 @@ bool Chart::init()
     chrtRng = dfltRng;
     recalcRngMid = true; // initialize <chrtMid> and chart borders on first chart display call
 
-    if (dbFormat.isEmpty()) {
-        // data buffer may not exist yet, because boat data object is not available yet
+    if (dbFormat.isEmpty()) { // data buffer may not exist yet, because boat data object is not available yet
         initValid = false; // chart object will get invalid data during initialization
     } else {
         initValid = true;
@@ -122,8 +121,7 @@ bool Chart::init()
 //             <prntName>;      print data name on horizontal half chart [true|false]
 //             <showCurrValue>: print current boat data value [true|false]
 //             <currValue>:     current boat data value; used only for test on valid data
-// void Chart::showChrt(ChrtDirection chrtDire, ChrtSize chrtSze, const int8_t chrtIntv, bool prntName, bool showCurrValue, GwApi::BoatValue currValue)
-void Chart::showChrt(const char chrtDir, const int8_t chrtSz, const int8_t chrtIntv, bool prntName, bool showCurrValue, GwApi::BoatValue currValue)
+void Chart::showChrt(const ChrtDir chrtDir, ChrtSize chrtSz, const int8_t chrtIntv, bool prntName, bool showCurrValue, GwApi::BoatValue currValue)
 {
     if (!setChartDimensions(chrtDir, chrtSz)) {
         return; // wrong chart dimension parameters
@@ -146,31 +144,30 @@ void Chart::showChrt(const char chrtDir, const int8_t chrtSz, const int8_t chrtI
 }
 
 // define dimensions and start points for chart
-// bool Chart::setChartDimensions(const ChrtDirection direction, const ChrtSize size)
-bool Chart::setChartDimensions(const char direction, const int8_t size)
+bool Chart::setChartDimensions(const ChrtDir chrtDir, const ChrtSize chrtSz)
 {
-    if ((direction != HORIZONTAL && direction != VERTICAL) || (size < 0 || size > 3)) {
+    if ((chrtDir != HORIZONTAL && chrtDir != VERTICAL) || (chrtSz < 0 || chrtSz > 3)) {
         LOG_DEBUG(GwLog::ERROR, "obp60:setChartDimensions %s: wrong parameters", dataBuf.getName());
         return false;
     }
 
-    if (direction == HORIZONTAL) {
+    if (chrtDir == HORIZONTAL) {
         // horizontal chart timeline direction
         timAxis = dWidth - 1;
-        switch (size) {
-        case 0:
+        switch (chrtSz) {
+        case ChrtSize::FULL_SIZE:
             valAxis = dHeight - top - bottom;
             cRoot = { 0, top - 1 };
             break;
-        case 1:
+        case HALF_SIZE_LEFT_TOP:
             valAxis = (dHeight - top - bottom) / 2 - hGap;
             cRoot = { 0, top - 1 };
             break;
-        case 2:
+        case HALF_SIZE_RIGHT_BOTTOM:
             valAxis = (dHeight - top - bottom) / 2 - hGap;
             cRoot = { 0, top + (valAxis + hGap) + hGap - 1 };
             break;
-        case 3:
+        case TWO_THIRD_TOP:
             valAxis = (dHeight - top - bottom) * 0.667 - hGap;
             cRoot = { 0, top - 1 };
             break;
@@ -179,19 +176,19 @@ bool Chart::setChartDimensions(const char direction, const int8_t size)
             cRoot = { 0, top - 1 };
         }
 
-    } else if (direction == VERTICAL) {
+    } else if (chrtDir == VERTICAL) {
         // vertical chart timeline direction
         timAxis = dHeight - top - bottom;
-        switch (size) {
-        case 0:
+        switch (chrtSz) {
+        case FULL_SIZE:
             valAxis = dWidth - 1;
             cRoot = { 0, top - 1 };
             break;
-        case 1:
+        case HALF_SIZE_LEFT_TOP:
             valAxis = dWidth / 2 - vGap;
             cRoot = { 0, top - 1 };
             break;
-        case 2:
+        case HALF_SIZE_RIGHT_BOTTOM:
             valAxis = dWidth / 2 - vGap;
             cRoot = { dWidth / 2 + vGap - 1, top - 1 };
             break;
@@ -200,13 +197,13 @@ bool Chart::setChartDimensions(const char direction, const int8_t size)
             cRoot = { 0, top - 1 };
         }
     }
-    // LOG_DEBUG(GwLog::DEBUG, "obp60:setChartDimensions %s: direction: %c, size: %d, dWidth: %d, dHeight: %d, timAxis: %d, valAxis: %d, cRoot{%d, %d}, top: %d, bottom: %d, hGap: %d, vGap: %d",
-    //      dataBuf.getName(), direction, size, dWidth, dHeight, timAxis, valAxis, cRoot.x, cRoot.y, top, bottom, hGap, vGap);
+    // LOG_DEBUG(GwLog::DEBUG, "obp60:setChartDimensions %s: chrtDir: %c, size: %d, dWidth: %d, dHeight: %d, timAxis: %d, valAxis: %d, cRoot{%d, %d}, top: %d, bottom: %d, hGap: %d, vGap: %d",
+    //      dataBuf.getName(), chrtDir, size, dWidth, dHeight, timAxis, valAxis, cRoot.x, cRoot.y, top, bottom, hGap, vGap);
     return true;
 }
 
 // draw chart
-void Chart::drawChrt(const char chrtDir, const int8_t chrtIntv, GwApi::BoatValue& currValue)
+void Chart::drawChrt(const ChrtDir chrtDir, const int8_t chrtIntv, GwApi::BoatValue& currValue)
 {
     double chrtScale; // Scale for data values in pixels per value
 
@@ -230,7 +227,6 @@ void Chart::drawChrt(const char chrtDir, const int8_t chrtIntv, GwApi::BoatValue
         numNoData++;
         bufDataValid = true;
 
-        //        if (numNoData > THRESHOLD_NO_DATA) { // If more than 4 invalid values in a row, flag for invalid data
         if (numNoData > THRESHOLD_NO_DATA * (dataBuf.getUpdFreq() / 1000)) { // If more than <THRESHOLD> invalid values in a row, flag for invalid data
             bufDataValid = false;
             return;
@@ -371,7 +367,7 @@ void Chart::calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, doub
 }
 
 // Draw chart graph
-void Chart::drawChartLines(const char direction, const int8_t chrtIntv, const double chrtScale)
+void Chart::drawChartLines(const ChrtDir chrtDir, const int8_t chrtIntv, const double chrtScale)
 {
     double chrtVal; // Current data value
     Pos point, prevPoint; // current and previous chart point
@@ -406,7 +402,7 @@ void Chart::drawChartLines(const char direction, const int8_t chrtIntv, const do
                 chrtVal = chrtAvg.reading(chrtVal);
             }
 
-            point = setCurrentChartPoint(i, direction, chrtVal, chrtScale);
+            point = setCurrentChartPoint(i, chrtDir, chrtVal, chrtScale);
 
             if (i >= (numBufVals / chrtIntv) - 5) // log chart data of 1 line (adjust for test purposes)
                 LOG_DEBUG(GwLog::DEBUG, "PageWindPlot Chart: i: %d, chrtVal: %.2f, chrtMin: %.2f, {x,y} {%d,%d}", i, chrtVal, chrtMin, x, y);
@@ -427,7 +423,7 @@ void Chart::drawChartLines(const char direction, const int8_t chrtIntv, const do
                     // LOG_DEBUG(GwLog::DEBUG, "PageWindPlot Chart: crossedBorders: %d, chrtVal: %.2f, chrtPrevVal: %.2f", crossedBorders, chrtVal, chrtPrevVal);
                     bool wrappingFromHighToLow = normCurrVal < normPrevVal; // Determine which edge we're crossing
 
-                    if (direction == HORIZONTAL) {
+                    if (chrtDir == HORIZONTAL) {
                         int ySplit = wrappingFromHighToLow ? (cRoot.y + valAxis) : cRoot.y;
                         drawBoldLine(prevPoint.x, prevPoint.y, point.x, ySplit);
                         prevPoint.y = wrappingFromHighToLow ? cRoot.y : (cRoot.y + valAxis);
@@ -441,7 +437,7 @@ void Chart::drawChartLines(const char direction, const int8_t chrtIntv, const do
             }
 
             if (chrtDataFmt == DEPTH) {
-                if (direction == HORIZONTAL) { // horizontal chart
+                if (chrtDir == HORIZONTAL) { // horizontal chart
                     drawBoldLine(point.x, point.y, point.x, cRoot.y + valAxis);
                 } else { // vertical chart
                     drawBoldLine(point.x, point.y, cRoot.x + valAxis, point.y);
@@ -470,11 +466,11 @@ void Chart::drawChartLines(const char direction, const int8_t chrtIntv, const do
 }
 
 // Set current chart point to draw
-Pos Chart::setCurrentChartPoint(const int i, const char direction, const double chrtVal, const double chrtScale)
+Pos Chart::setCurrentChartPoint(const int i, const ChrtDir chrtDir, const double chrtVal, const double chrtScale)
 {
     Pos currentPoint;
 
-    if (direction == HORIZONTAL) {
+    if (chrtDir == HORIZONTAL) {
         currentPoint.x = cRoot.x + i; // Position in chart area
 
         if (chrtDataFmt == WIND || chrtDataFmt == ROTATION) { // degree type value
@@ -499,7 +495,7 @@ Pos Chart::setCurrentChartPoint(const int i, const char direction, const double 
 }
 
 // chart time axis label + lines
-void Chart::drawChrtTimeAxis(const char chrtDir, const int8_t chrtSz, const int8_t chrtIntv)
+void Chart::drawChrtTimeAxis(const ChrtDir chrtDir, const ChrtSize chrtSz, const int8_t chrtIntv)
 {
     int axSlots, intv, i, timeRng;
     char sTime[6];
@@ -539,7 +535,7 @@ void Chart::drawChrtTimeAxis(const char chrtDir, const int8_t chrtSz, const int8
                 getdisplay().fillRect(0, cRoot.y + j - 9, 32, 15, bgColor); // clear small area to remove potential chart lines
                 getdisplay().setCursor((4 - strlen(sTime)) * 7, cRoot.y + j + 3); // time value; print left screen; value right-formated
                 getdisplay().printf("%s", sTime); // time value
-            } else if (chrtSz == HALF_SIZE_RIGHT) { // half size chart; right side
+            } else if (chrtSz == HALF_SIZE_RIGHT_BOTTOM) { // half size chart; right side
                 drawTextCenter(dWidth / 2, cRoot.y + j, sTime); // time value; print mid screen
             }
             i -= chrtIntv;
@@ -548,11 +544,11 @@ void Chart::drawChrtTimeAxis(const char chrtDir, const int8_t chrtSz, const int8
 }
 
 // chart value axis labels + lines
-void Chart::drawChrtValAxis(const char chrtDir, const int8_t chrtSz, bool prntName)
+void Chart::drawChrtValAxis(const ChrtDir chrtDir, const ChrtSize chrtSz, const bool prntName)
 {
     const GFXfont* font;
-    constexpr bool NO_LABEL = false;
-    constexpr bool LABEL = true;
+    //    constexpr bool NO_LABEL = false;
+    //    constexpr bool LABEL = true;
 
     getdisplay().setTextColor(fgColor);
 
@@ -560,13 +556,14 @@ void Chart::drawChrtValAxis(const char chrtDir, const int8_t chrtSz, bool prntNa
 
         if (chrtSz == FULL_SIZE) {
 
-            // print buffer data name on left hand side of time axis (max. size 5 characters)
-            font = &Ubuntu_Bold12pt8b;
-            getdisplay().setFont(font);
-            getdisplay().fillRect(cRoot.x + timAxis - 57, cRoot.y + 2, 58, 20, bgColor); // clear small area to remove potential chart lines
-            String name = xdrDelete(dbName); // Value name
-            drawTextRalign(cRoot.x + timAxis - 1, cRoot.y + 19, name.substring(0, 5));
-
+            if (prntName) {
+                // print buffer data name on left hand side of time axis (max. size 5 characters)
+                font = &Ubuntu_Bold12pt8b;
+                getdisplay().setFont(font);
+                getdisplay().fillRect(cRoot.x + timAxis - 57, cRoot.y + 2, 58, 20, bgColor); // clear small area to remove potential chart lines
+                String name = xdrDelete(dbName); // Value name
+                drawTextRalign(cRoot.x + timAxis - 1, cRoot.y + 19, name.substring(0, 5));
+            }
             if (chrtDataFmt == WIND) {
                 prntHorizChartThreeValueAxisLabel(font);
                 return;
@@ -594,9 +591,13 @@ void Chart::drawChrtValAxis(const char chrtDir, const int8_t chrtSz, bool prntNa
 
     } else { // vertical chart
 
-        if (chrtSz == FULL_SIZE) {
-            font = &Ubuntu_Bold12pt8b;
-            getdisplay().setFont(font); // use larger font
+        if (prntName) {
+            if (chrtSz == FULL_SIZE) {
+                font = &Ubuntu_Bold12pt8b;
+            } else {
+                font = &Ubuntu_Bold10pt8b;
+            }
+            getdisplay().setFont(font);
             String name = xdrDelete(dbName); // Value name
             drawTextRalign(cRoot.x + (valAxis * 0.42), cRoot.y - 2, name.substring(0, 6)); // print buffer data name (max. size 6 characters)
         }
@@ -607,10 +608,10 @@ void Chart::drawChrtValAxis(const char chrtDir, const int8_t chrtSz, bool prntNa
 }
 
 // Print current data value
-void Chart::prntCurrValue(const char direction, GwApi::BoatValue& currValue)
+void Chart::prntCurrValue(const ChrtDir chrtDir, GwApi::BoatValue& currValue)
 {
-    const int xPosVal = (direction == HORIZONTAL) ? cRoot.x + (timAxis / 2) - 74 : cRoot.x + 31;
-    const int yPosVal = (direction == HORIZONTAL) ? cRoot.y + valAxis : cRoot.y + timAxis;
+    const int xPosVal = (chrtDir == HORIZONTAL) ? cRoot.x + (timAxis / 2) - 74 : cRoot.x + 31;
+    const int yPosVal = (chrtDir == HORIZONTAL) ? cRoot.y + valAxis : cRoot.y + timAxis;
 
     FormattedData frmtDbData = formatValue(&currValue, *commonData, NO_SIMUDATA);
     String sdbValue = frmtDbData.svalue; // value as formatted string
@@ -638,13 +639,13 @@ void Chart::prntCurrValue(const char direction, GwApi::BoatValue& currValue)
 }
 
 // print message for no valid data availabletemplate <typename T>
-void Chart::prntNoValidData(const char direction)
+void Chart::prntNoValidData(const ChrtDir chrtDir)
 {
     Pos p;
 
     getdisplay().setFont(&Ubuntu_Bold10pt8b);
 
-    if (direction == HORIZONTAL) {
+    if (chrtDir == HORIZONTAL) {
         p.x = cRoot.x + (timAxis / 2);
         p.y = cRoot.y + (valAxis / 2) - 10;
     } else {
