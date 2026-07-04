@@ -87,7 +87,8 @@ protected:
     double chrtMax; // Range high end value
     double chrtMid; // Range mid value
     double rngStep; // Defines the step of adjustment (e.g. 10 m/s) for value axis range
-    bool recalcRngMid = false; // Flag for re-calculation of mid value of chart for wind data types
+    bool recalcRngMid; // Flag for re-calculation of mid value of chart for wind data types
+    bool allLeft, allRight; // indicate whether all chart points are left or right of middle value (only for wind data type)
 
     String dbName, dbFormat; // Name and format of data buffer
     ChrtDataFormat chrtDataFmt; // Data format of chart boat data type
@@ -107,7 +108,7 @@ protected:
 
     movingAvg<double> chrtAvg { 7 }; // Store average of the last 7 chart values if chart gradient shall be smoothed
     double chrtPrevVal; // Last data value in chart area
-    int x, y; // x and y coordinates for drawing
+//    int x, y; // x and y coordinates for drawing
     int prevX, prevY; // Last x and y coordinates for drawing
 
     // Default ranges for various boat data types
@@ -126,12 +127,12 @@ protected:
     void getBufferStartNSize(const int8_t chrtIntv); // Identify buffer size and buffer start position for chart
     void calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, double& rng); // Calculate chart points for value axis and return range between <min> and <max>
     void drawChartLines(const ChrtDir direction, const int8_t chrtIntv, const double chrtScale); // Draw chart graph
-    Pos setCurrentChartPoint(const int i, const ChrtDir chrtDir, const double chrtVal, const double chrtScale); // Set current chart point to draw
+    Pos setChartPoint(const int i, const ChrtDir chrtDir, const double chrtVal, const double chrtScale); // Set current chart point to draw
     void drawChrtTimeAxis(const ChrtDir chrtDir, const ChrtSize chrtSz, const int8_t chrtIntv); // Draw time axis of chart, value and lines
     void drawChrtValAxis(const ChrtDir chrtDir, const ChrtSize chrtSz, const bool prntLabel); // Draw value axis of chart, value and lines
     void prntCurrValue(const ChrtDir chrtDir, GwApi::BoatValue& currValue); // Add current boat data value to chart
     void prntNoValidData(const ChrtDir chrtDir); // print message for no valid data available
-    double getAngleRng(const double center, size_t amount); // Calculate range between chart center and edges
+    double getCircularRng(const double center, size_t amount); // Calculate range between chart center and edges
     void prntVerticChartThreeValueAxisLabel(const GFXfont* font); // print value axis label with only three values: top, mid, and bottom for vertical chart
     void prntHorizChartThreeValueAxisLabel(const GFXfont* font); // print value axis label with only three values: top, mid, and bottom for horizontal chart
     void prntHorizChartMultiValueAxisLabel(const GFXfont* font); // print value axis label with multiple axis lines for horizontal chart

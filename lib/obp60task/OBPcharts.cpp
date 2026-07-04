@@ -102,6 +102,8 @@ bool Chart::init()
     chrtMid = (chrtMin + chrtMax) / 2;
     chrtRng = dfltRng;
     recalcRngMid = true; // initialize <chrtMid> and chart borders on first chart display call
+    allLeft = true;
+    allRight = true;
 
     if (dbFormat.isEmpty()) { // data buffer may not exist yet, because boat data object is not available yet
         initValid = false; // chart object will get invalid data during initialization
@@ -176,7 +178,7 @@ bool Chart::setChartDimensions(const ChrtDir chrtDir, const ChrtSize chrtSz)
             cRoot = { 0, top - 1 };
         }
 
-    } else if (chrtDir == VERTICAL) {
+    } else {
         // vertical chart timeline direction
         timAxis = dHeight - top - bottom;
         switch (chrtSz) {
@@ -190,7 +192,7 @@ bool Chart::setChartDimensions(const ChrtDir chrtDir, const ChrtSize chrtSz)
             break;
         case HALF_SIZE_RIGHT_BOTTOM:
             valAxis = dWidth / 2 - vGap;
-            cRoot = { dWidth / 2 + vGap - 1, top - 1 };
+            cRoot = { dWidth / 2 + vGap, top - 1 };
             break;
         default: // same as case 0; should never happen
             valAxis = dWidth - 1;
@@ -262,6 +264,7 @@ void Chart::calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, doub
 {
     if (chrtDataFmt == WIND || chrtDataFmt == ROTATION) {
 
+        // calculate rngMid
         if (chrtDataFmt == ROTATION) {
             // if chart data is of type 'rotation', we want to have <rndMid> always to be '0'
             rngMid = 0;
@@ -276,22 +279,13 @@ void Chart::calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, doub
             if (recalcRngMid) {
                 // Set rngMid
 
-                rngMid = dataBuf.getMid(numBufVals);
+                rngMid = dataBuf.getCircularMid(numBufVals);
 
                 if (rngMid == dbMAX_VAL) {
                     rngMid = 0;
                 } else {
-                    rngMid = std::round(rngMid / rngStep) * rngStep; // Set new center value; round to next <rngStep> value
+                    rngMid = std::round(rngMid / rngStep) * rngStep; // round new center value to next <rngStep> value
 
-                    // Check if range between  'min' and 'max' is > 180° or crosses '0'
-                    rngMin = dataBuf.getMin(numBufVals);
-                    rngMax = dataBuf.getMax(numBufVals);
-                    rng = (rngMax >= rngMin ? rngMax - rngMin : M_TWOPI - rngMin + rngMax);
-                    rng = std::max(rng, dfltRng); // keep at least default chart range
-
-                    if (rng > M_PI) { // If wind range > 180°, adjust wndCenter to smaller wind range end
-                        rngMid = WindUtils::to2PI(rngMid + M_PI);
-                    }
                 }
                 recalcRngMid = false; // Reset flag for <rngMid> determination
 
@@ -302,16 +296,11 @@ void Chart::calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, doub
 
         // check and adjust range between left, mid, and right chart limit
         double halfRng = rng / 2.0; // we calculate with range between <rngMid> and edges
-        double tmpRng = getAngleRng(rngMid, numBufVals);
+        double tmpRng = getCircularRng(rngMid, numBufVals);
         tmpRng = (tmpRng == dbMAX_VAL ? 0 : std::ceil(tmpRng / rngStep) * rngStep);
-
-        // LOG_DEBUG(GwLog::DEBUG, "calcChrtBorders: tmpRng: %.1f°, halfRng: %.1f°", tmpRng * RAD_TO_DEG, halfRng * RAD_TO_DEG);
-
         if (tmpRng > halfRng) { // expand chart range to new value
             halfRng = tmpRng;
-        }
-
-        else if (tmpRng + rngStep < halfRng) { // Contract chart range for higher resolution if possible
+        } else if (tmpRng + rngStep < halfRng) { // Contract chart range for higher resolution if possible
             halfRng = std::max(dfltRng / 2.0, tmpRng);
         }
 
@@ -320,7 +309,6 @@ void Chart::calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, doub
         rngMax = WindUtils::to2PI(rngMax);
 
         rng = halfRng * 2.0;
-
         // LOG_DEBUG(GwLog::DEBUG, "calcChrtBorders: rngMin: %.1f°, rngMid: %.1f°, rngMax: %.1f°, tmpRng: %.1f°, rng: %.1f°, rngStep: %.1f°", rngMin * RAD_TO_DEG, rngMid * RAD_TO_DEG, rngMax * RAD_TO_DEG,
         //     tmpRng * RAD_TO_DEG, rng * RAD_TO_DEG, rngStep * RAD_TO_DEG);
 
@@ -360,9 +348,8 @@ void Chart::calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, doub
 
         rngMid = (rngMin + rngMax) / 2.0;
         rng = rngMax - rngMin;
-
-        LOG_DEBUG(GwLog::DEBUG, "calcChrtRange-end: currMinVal: %.1f, currMaxVal: %.1f, rngMin: %.1f, rngMid: %.1f, rngMax: %.1f, rng: %.1f, rngStep: %.1f, zeroValue: %.1f, dbMIN_VAL: %.1f",
-            currMinVal, currMaxVal, rngMin, rngMid, rngMax, rng, rngStep, zeroValue, dbMIN_VAL);
+        // LOG_DEBUG(GwLog::DEBUG, "calcChrtRange-end: currMinVal: %.1f, currMaxVal: %.1f, rngMin: %.1f, rngMid: %.1f, rngMax: %.1f, rng: %.1f, rngStep: %.1f, zeroValue: %.1f, dbMIN_VAL: %.1f",
+        //    currMinVal, currMaxVal, rngMin, rngMid, rngMax, rng, rngStep, zeroValue, dbMIN_VAL);
     }
 }
 
@@ -398,18 +385,15 @@ void Chart::drawChartLines(const ChrtDir chrtDir, const int8_t chrtIntv, const d
         } else {
 
             if (smoothCharts) {
-                // if chart lines shall be smoothed, apply moving average filter of the last 10 values
-                chrtVal = chrtAvg.reading(chrtVal);
+                chrtVal = chrtAvg.reading(chrtVal); // if chart lines shall be smoothed, apply moving average filter of the last 10 values
             }
 
-            point = setCurrentChartPoint(i, chrtDir, chrtVal, chrtScale);
-
-            if (i >= (numBufVals / chrtIntv) - 5) // log chart data of 1 line (adjust for test purposes)
-                LOG_DEBUG(GwLog::DEBUG, "PageWindPlot Chart: i: %d, chrtVal: %.2f, chrtMin: %.2f, {x,y} {%d,%d}", i, chrtVal, chrtMin, x, y);
+            point = setChartPoint(i, chrtDir, chrtVal, chrtScale);
+            // if (i >= (numBufVals / chrtIntv) - 5) // log chart data of x lines (adjust for test purposes)
+            //    LOG_DEBUG(GwLog::DEBUG, "PageWindPlot Chart: i: %d, chrtVal: %.2f, chrtMin: %.2f, {x,y} {%d,%d}", i, chrtVal, chrtMin, point.x, point.y);
 
             if ((i == 0) || (chrtPrevVal == dbMAX_VAL)) {
-                // just a dot for 1st chart point or after some invalid values
-                prevPoint = point;
+                prevPoint = point; // just a dot for 1st chart point or after some invalid values
 
             } else if (chrtDataFmt == WIND || chrtDataFmt == ROTATION) {
                 // cross borders check for degree values; shift values to [-PI..0..PI]; when crossing borders, range is 2x PI degrees
@@ -434,6 +418,13 @@ void Chart::drawChartLines(const ChrtDir chrtDir, const int8_t chrtIntv, const d
                         prevPoint.x = wrappingFromHighToLow ? cRoot.x : (cRoot.x + valAxis);
                     }
                 }
+
+                // test position of chart point against chart middle
+                double d = WindUtils::toPI(chrtVal - chrtMid);
+                if (d > 0) // point is right of mid point
+                    allLeft = false;
+                if (d < 0) // point is left of mid point
+                    allRight = false;
             }
 
             if (chrtDataFmt == DEPTH) {
@@ -455,18 +446,23 @@ void Chart::drawChartLines(const ChrtDir chrtDir, const int8_t chrtIntv, const d
             oldChrtIntv = 0; // force reset of buffer start and number of values to show in next display loop
 
             if (chrtDataFmt == WIND) { // degree of course or wind
-                recalcRngMid = true;
-                // LOG_DEBUG(GwLog::DEBUG, "PageWindPlot: chart end: timAxis: %d, i: %d, bufStart: %d, numBufVals: %d, recalcRngCntr: %d", timAxis, i, bufStart, numBufVals, recalcRngMid);
+                if (allLeft || allRight) {
+                    recalcRngMid = true;
+                }
+                LOG_DEBUG(GwLog::DEBUG, "OBPcharts: WIND chart end: timAxis: %d, i: %d, bufStart: %d, numBufVals: %d, recalcRngCntr: %d, allLeft: %d, allRight: %d", timAxis, i, bufStart,
+                    numBufVals, recalcRngMid, allLeft, allRight);
+                allLeft = true; // reset marker for all left/right chart points
+                allRight = true;
             }
             break;
         }
 
-        taskYIELD(); // we run for 50-150ms; be polite to other tasks with same priority
+        taskYIELD(); // we run for 50-150ms, so we want to be polite to other tasks with same priority
     }
 }
 
 // Set current chart point to draw
-Pos Chart::setCurrentChartPoint(const int i, const ChrtDir chrtDir, const double chrtVal, const double chrtScale)
+Pos Chart::setChartPoint(const int i, const ChrtDir chrtDir, const double chrtVal, const double chrtScale)
 {
     Pos currentPoint;
 
@@ -529,7 +525,7 @@ void Chart::drawChrtTimeAxis(const ChrtDir chrtDir, const ChrtSize chrtSz, const
         for (float j = intv; j < timAxis - 1; j += intv) { // don't print time label at upper and lower end of time axis
 
             snprintf(sTime, sizeof(sTime), "%d", i);
-            getdisplay().drawLine(cRoot.x, cRoot.y + j, cRoot.x + valAxis, cRoot.y + j, fgColor); // Grid line
+            getdisplay().drawLine(cRoot.x, cRoot.y + j, cRoot.x + valAxis - 2, cRoot.y + j, fgColor); // Grid line
 
             if (chrtSz == FULL_SIZE) { // full size chart
                 getdisplay().fillRect(0, cRoot.y + j - 9, 32, 15, bgColor); // clear small area to remove potential chart lines
@@ -660,7 +656,7 @@ void Chart::prntNoValidData(const ChrtDir chrtDir)
 }
 
 // Get maximum difference of last <amount> of dataBuf ringbuffer values to center chart; for angle data only
-double Chart::getAngleRng(const double center, size_t amount)
+double Chart::getCircularRng(const double center, size_t amount)
 {
     size_t count = dataBuf.getCurrentSize();
 
