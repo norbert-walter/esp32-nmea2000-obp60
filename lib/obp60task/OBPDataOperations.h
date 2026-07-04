@@ -138,6 +138,7 @@ public:
     static double toPI(double a);
     static double to360(double a);
     static double to180(double a);
+
     void toCart(const double* phi, const double* r, double* x, double* y);
     void toPol(const double* x, const double* y, double* phi, double* r);
     void addPolar(const double* phi1, const double* r1,

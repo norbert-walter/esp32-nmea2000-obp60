@@ -532,30 +532,28 @@ bool WindUtils::handleWinds(bool calcWinds)
         return false;
     }
 
-    // calculate AWD if not existing and if possible
+    // calculate AWD if it does not exist yet and AWA is available
     if (!awdBVal->valid) {
         if (calcWD(&awaVal, &hdtVal, &awd)) {
             awdBVal->value = awd;
             awdBVal->valid = true;
         } else {
             awdBVal->valid = false;
-            return false;
         }
     }
 
-    if (!calcWinds) { // don't calculate true winds if not set in configuration
-        return twCalculated;
-    }
-
-    // calculate TWD if not existing and if possible
+    // calculate TWD if it does not exist yet and TWA is available
     if (!twdBVal->valid) {
-        // calculate TWD if it does not exist yet and TWA is available
         if (calcWD(&twaVal, &hdtVal, &twd)) {
             twdBVal->value = twd;
             twdBVal->valid = true;
         } else {
             twdBVal->valid = false;
         }
+    }
+
+    if (!calcWinds) { // don't calculate true winds from apparent winds if not set in configuration
+        return twCalculated;
     }
 
     if (!twaBVal->valid || !twsBVal->valid || !twdBVal->valid) {
@@ -576,8 +574,6 @@ bool WindUtils::handleWinds(bool calcWinds)
             }
         }
     }
-    // LOG_DEBUG(GwLog::DEBUG, "WindUtils:handleWinds: twCalculated %d, TWD %.1f, TWA %.1f, TWS %.2f kn, AWD: %.1f", twCalculated, twdBVal->value * RAD_TO_DEG,
-    //     twaBVal->value * RAD_TO_DEG, twsBVal->value * 3.6 / 1.852, awdBVal->value * RAD_TO_DEG);
 
     return twCalculated;
 }
