@@ -80,6 +80,8 @@ public:
     double getMax(size_t amount) const; // Get maximum value of the last <amount> values of buffer
     double getMid() const; // Get mid value between <min> and <max> value in buffer
     double getMid(size_t amount) const; // Get mid value between <min> and <max> value of the last <amount> values of buffer
+    double getCircularMid() const; // Get mid value of circle (degree) values of buffer
+    double getCircularMid(size_t amount) const; // Get mid value of circle (degree) values of the last <amount> values of buffer
     double getMedian() const; // Get the median value in buffer
     double getMedian(size_t amount) const; // Get the median value of the last <amount> values of buffer
     size_t getCapacity() const; // Get the buffer capacity (maximum size)
