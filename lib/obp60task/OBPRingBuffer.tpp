@@ -3,22 +3,6 @@
 #include <cmath>
 
 template <typename T>
-void RingBuffer<T>::initCommon()
-{
-    NUMLIMIT_LOW = std::numeric_limits<T>::lowest();
-    NUMLIMIT_HIGH = std::numeric_limits<T>::max();
-    dataName = "";
-    dataFmt = "";
-    updFreq = -1;
-    mltplr = 1;
-    BUFMIN_VAL = static_cast<double>(NUMLIMIT_LOW);
-    BUFMAX_VAL = static_cast<double>(NUMLIMIT_HIGH);
-    lowest = BUFMIN_VAL;
-    highest = BUFMAX_VAL;
-    bufLocker = xSemaphoreCreateMutex();
-}
-
-template <typename T>
 RingBuffer<T>::RingBuffer()
     : capacity(0)
     , head(0)
@@ -44,6 +28,22 @@ RingBuffer<T>::RingBuffer(size_t size)
 
     buffer.reserve(size);
     buffer.resize(size, NUMLIMIT_HIGH); // NUMLIMIT_HIGH indicate invalid values
+}
+
+template <typename T>
+void RingBuffer<T>::initCommon()
+{
+    NUMLIMIT_LOW = std::numeric_limits<T>::lowest();
+    NUMLIMIT_HIGH = std::numeric_limits<T>::max();
+    dataName = "";
+    dataFmt = "";
+    updFreq = -1;
+    mltplr = 1;
+    BUFMIN_VAL = static_cast<double>(NUMLIMIT_LOW);
+    BUFMAX_VAL = static_cast<double>(NUMLIMIT_HIGH);
+    lowest = BUFMIN_VAL;
+    highest = BUFMAX_VAL;
+    bufLocker = xSemaphoreCreateMutex();
 }
 
 // Specify meta data of buffer content
@@ -370,7 +370,6 @@ double RingBuffer<T>::getCircularMid(size_t amount) const
     }
 
     return arcWidth; // Midpoint of occupied arc
-//    return WindUtils::to2PI(start + arcWidth / 2.0); // Midpoint of occupied arc
 }
 
 // Get the buffer capacity (maximum size)
