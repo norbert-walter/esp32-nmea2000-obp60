@@ -3,6 +3,7 @@
 #include "OBPRingBuffer.h"
 #include "Pagedata.h"
 #include "obp60task.h"
+#include "movingAvg.h"
 #include <map>
 #include <unordered_map>
 
@@ -36,10 +37,14 @@ public:
 class HstryBuf {
 private:
     RingBuffer<uint16_t> hstryBuf; // Circular buffer to store history values
+    movingAvg<double> chrtAvg {6}; // Store average of the last 6 chart values if chart gradient shall be smoothed
+    movingAvgAngle<double> chrtAvgAngle {6}; // Store average of the last 6 chart values (angle data) if chart gradient shall be smoothed
     String boatDataName;
     double hstryMin;
     double hstryMax;
     bool metaDataDefined = false;
+    bool smoothing = false;
+    bool isTypeAngle = false;
     unsigned long bufUpdateTime;
     GwApi::BoatValue* boatValue;
     GwLog* logger;
@@ -47,7 +52,7 @@ private:
     friend class HstryBuffers;
 
 public:
-    HstryBuf(const String& name, int size, BoatValueList* boatValues, GwLog* log);
+    HstryBuf(const String& name, const int size, BoatValueList* boatValues, const bool smooth, GwLog* log);
     bool hasMetaData() const { return metaDataDefined; };
     void init(const String& format, int updFreq, double mltplr, double minVal, double maxVal);
     void add(double value);
@@ -101,7 +106,7 @@ private:
 
 public:
     HstryBuffers(int size, BoatValueList* boatValues, GwLog* log);
-    void addBuffer(const String& name);
+    void addBuffer(const String& name, const bool smooth);
     void handleHstryBufs(bool useSimuData, CommonData& common);
     RingBuffer<uint16_t>* getBuffer(const String& name);
 };
