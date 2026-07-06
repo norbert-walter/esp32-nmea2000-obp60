@@ -28,11 +28,6 @@ Chart::Chart(RingBuffer<uint16_t>& dataBuf, CommonData& common, bool useSimuData
     dHeight = getdisplay().height();
 #endif
 
-    smoothCharts = commonData->config->getBool(commonData->config->smoothCharts);
-    if (smoothCharts) {
-        chrtAvg.begin();
-    }
-
     init();
 };
 
@@ -51,7 +46,7 @@ bool Chart::init()
     dbMIN_VAL = dataBuf.getMinVal();
     dbMAX_VAL = dataBuf.getMaxVal();
     bufSize = dataBuf.getCapacity();
-    LOG_DEBUG(GwLog::DEBUG, "Chart Init: dbMIN_VAL: %.2f, dbMAX_VAL: %.2fd, bufSize: %d", dbMIN_VAL, dbMAX_VAL, bufSize);
+    // LOG_DEBUG(GwLog::DEBUG, "Chart Init: dbMIN_VAL: %.2f, dbMAX_VAL: %.2fd, bufSize: %d", dbMIN_VAL, dbMAX_VAL, bufSize);
 
     // Initialize chart data format; shorter version of standard format indicator
     if (dbFormat == "formatCourse" || dbFormat == "formatWind") {
@@ -214,7 +209,7 @@ void Chart::drawChrt(const ChrtDir chrtDir, const int8_t chrtIntv, GwApi::BoatVa
     //    LOG_DEBUG(GwLog::DEBUG, "Chart:drawChart: min: %.1f, mid: %.1f, max: %.1f, rng: %.1f", chrtMin, chrtMid, chrtMax, chrtRng);
     calcChrtBorders(chrtMin, chrtMid, chrtMax, chrtRng);
     chrtScale = double(valAxis) / chrtRng; // Chart scale: pixels per value step
-    LOG_DEBUG(GwLog::DEBUG, "Chart:drawChart: min: %.1f, mid: %.1f, max: %.1f, rng: %.1f, data valid: %d", chrtMin, chrtMid, chrtMax, chrtRng, currValue.valid);
+    // LOG_DEBUG(GwLog::DEBUG, "Chart:drawChart: min: %.1f, mid: %.1f, max: %.1f, rng: %.1f, data valid: %d", chrtMin, chrtMid, chrtMax, chrtRng, currValue.valid);
 
     // Do we have valid buffer data?
     if (dataBuf.getMax() == dbMAX_VAL) { // only <MAX_VAL> values in buffer -> no valid wind data available
@@ -285,7 +280,6 @@ void Chart::calcChrtBorders(double& rngMin, double& rngMid, double& rngMax, doub
                     rngMid = 0;
                 } else {
                     rngMid = std::round(rngMid / rngStep) * rngStep; // round new center value to next <rngStep> value
-
                 }
                 recalcRngMid = false; // Reset flag for <rngMid> determination
 
@@ -359,23 +353,6 @@ void Chart::drawChartLines(const ChrtDir chrtDir, const int8_t chrtIntv, const d
     double chrtVal; // Current data value
     Pos point, prevPoint; // current and previous chart point
 
-    if (smoothCharts) {
-        // prime moving average filter to ensure the first plotted point is already averaged
-
-        chrtAvg.reset();
-
-        // Feed the filter the 10 values preceding bufStart
-        for (int p = 10; p > 0; p--) {
-            // Calculate index with wrapping: (start - offset + size) % size
-            int primeIdx = (bufStart - (p * chrtIntv));
-            double primeVal = dataBuf.get(primeIdx);
-
-            if (primeVal != dbMAX_VAL) {
-                chrtAvg.reading(primeVal);
-            }
-        }
-    }
-
     for (int i = 0; i < (numBufVals / chrtIntv); i++) {
 
         chrtVal = dataBuf.get(bufStart + (i * chrtIntv)); // show the latest wind values in buffer; keep 1st value constant in a rolling buffer
@@ -383,10 +360,6 @@ void Chart::drawChartLines(const ChrtDir chrtDir, const int8_t chrtIntv, const d
         if (chrtVal == dbMAX_VAL) {
             chrtPrevVal = dbMAX_VAL;
         } else {
-
-            if (smoothCharts) {
-                chrtVal = chrtAvg.reading(chrtVal); // if chart lines shall be smoothed, apply moving average filter of the last 10 values
-            }
 
             point = setChartPoint(i, chrtDir, chrtVal, chrtScale);
             // if (i >= (numBufVals / chrtIntv) - 5) // log chart data of x lines (adjust for test purposes)
@@ -419,12 +392,14 @@ void Chart::drawChartLines(const ChrtDir chrtDir, const int8_t chrtIntv, const d
                     }
                 }
 
-                // test position of chart point against chart middle
-                double d = WindUtils::toPI(chrtVal - chrtMid);
-                if (d > 0) // point is right of mid point
-                    allLeft = false;
-                if (d < 0) // point is left of mid point
-                    allRight = false;
+                // test position of chart point against chart middle; ignore first values which we don't show next time anyway
+                if (i > MIN_FREE_VALUES) {
+                    double d = WindUtils::toPI(chrtVal - chrtMid);
+                    if (d > 0) // point is right of mid point
+                        allLeft = false;
+                    if (d < 0) // point is left of mid point
+                        allRight = false;
+                }
             }
 
             if (chrtDataFmt == DEPTH) {
@@ -446,11 +421,11 @@ void Chart::drawChartLines(const ChrtDir chrtDir, const int8_t chrtIntv, const d
             oldChrtIntv = 0; // force reset of buffer start and number of values to show in next display loop
 
             if (chrtDataFmt == WIND) { // degree of course or wind
-                if (allLeft || allRight) {
+                if (allLeft || allRight || chrtRng == M_PI) {
                     recalcRngMid = true;
                 }
-                LOG_DEBUG(GwLog::DEBUG, "OBPcharts: WIND chart end: timAxis: %d, i: %d, bufStart: %d, numBufVals: %d, recalcRngCntr: %d, allLeft: %d, allRight: %d", timAxis, i, bufStart,
-                    numBufVals, recalcRngMid, allLeft, allRight);
+                // LOG_DEBUG(GwLog::DEBUG, "OBPcharts: WIND chart end: timAxis: %d, i: %d, bufStart: %d, numBufVals: %d, recalcRngCntr: %d, allLeft: %d, allRight: %d", timAxis, i, bufStart,
+                //    numBufVals, recalcRngMid, allLeft, allRight);
                 allLeft = true; // reset marker for all left/right chart points
                 allRight = true;
             }

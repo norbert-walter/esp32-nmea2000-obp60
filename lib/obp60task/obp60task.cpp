@@ -462,6 +462,13 @@ void OBP60Task(GwApi *api){
     WindUtils trueWind(&boatValues, logger);  // Create helper object for true wind calculation
     CalibrationData calibrationDataList(logger); // all boat data types which are supposed to be calibrated
 
+    // Read user settings from config file
+    bool calcTrueWnds = api->getConfig()->getBool(api->getConfig()->calcTrueWnds, false);
+    bool smoothCharts = api->getConfig()->getBool(api->getConfig()->smoothCharts, false);
+    bool useSimuData = api->getConfig()->getBool(api->getConfig()->useSimuData, false);
+    // Read user calibration data settings from config file
+    calibrationDataList.readConfig(config);
+
     //fill the page data from config
     numPages=config->getInt(config->visiblePages,1);
     if (numPages < 1) numPages=1;
@@ -507,7 +514,7 @@ void OBP60Task(GwApi *api){
        if (pages[i].parameters.pageName == "OneValue" || pages[i].parameters.pageName == "TwoValues"
           || pages[i].parameters.pageName == "WindPlot"  || pages[i].parameters.pageName == "Weather") {
            for (auto pVal : pages[i].parameters.values) {
-                hstryBufferList.addBuffer(pVal->getName());
+                hstryBufferList.addBuffer(pVal->getName(), smoothCharts);
            }
        }
        // Add list of history buffers to page parameters
@@ -516,12 +523,6 @@ void OBP60Task(GwApi *api){
 
     // add out of band system page (always available)
     Page *syspage = allPages.pages[0]->creator(commonData);
-
-    // Read user settings from config file
-    bool calcTrueWnds = api->getConfig()->getBool(api->getConfig()->calcTrueWnds, false);
-    bool useSimuData = api->getConfig()->getBool(api->getConfig()->useSimuData, false);
-    // Read user calibration data settings from config file
-    calibrationDataList.readConfig(config);
 
     // Display screenshot handler for HTTP request
     // http://192.168.15.1/api/user/OBP60Task/screenshot
@@ -848,12 +849,12 @@ void OBP60Task(GwApi *api){
                 api->getBoatDataValues(boatValues.numValues,boatValues.allBoatValues);
                 api->getStatus(commonData.status);
 
-                // ulong startHndl = millis();
+                // ulong startHandl = millis();
                 trueWind.handleWinds(calcTrueWnds); // calculate true wind data from apparent wind values
                 trueWind.setMaxWs(); // maintain MaxTWS value in any case; invalid TWS value is considered automatically
                 calibrationDataList.handleCalibration(&boatValues); // Process calibration for all boat data in <calibrationDataList>
                 hstryBufferList.handleHstryBufs(useSimuData, commonData); // Handle history buffers for certain boat data for charts and other usage
-                // LOG_DEBUG(GwLog::DEBUG, "obp60task: data handling: %d ms", millis() - startHndl);
+                // LOG_DEBUG(GwLog::DEBUG, "obp60task: data handling: %d ms", millis() - startHandl);
 
                 // Clear display
                 // getdisplay().fillRect(0, 0, getdisplay().width(), getdisplay().height(), commonData.bgcolor);

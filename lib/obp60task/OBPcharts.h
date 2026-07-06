@@ -106,9 +106,7 @@ protected:
     bool bufDataValid = false; // Flag to indicate if buffer data is valid
     int oldChrtIntv = 0; // remember recent user selection of data interval
 
-    movingAvg<double> chrtAvg { 7 }; // Store average of the last 7 chart values if chart gradient shall be smoothed
     double chrtPrevVal; // Last data value in chart area
-//    int x, y; // x and y coordinates for drawing
     int prevX, prevY; // Last x and y coordinates for drawing
 
     // Default ranges for various boat data types
