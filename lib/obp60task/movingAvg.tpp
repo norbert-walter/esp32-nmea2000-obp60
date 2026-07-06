@@ -5,11 +5,6 @@
 
 // Extended to template class for handling of multiple data types
 
-//template <typename T>
-//movingAvg<T>::movingAvg(int interval)
-//    : m_interval{interval}, m_nbrReadings{0}, m_sum{0}, m_next{0}, m_readings{nullptr}
-//{}
-
 // initialize - allocate the interval array
 template <typename T>
 void movingAvg<T>::begin()
@@ -86,3 +81,103 @@ void movingAvg<T>::reset()
     m_sum = 0;
     m_next = 0;
 }
+// --- End Class movingAvg ---------------
+
+// --- Class MovingAvgAngle ---------------
+template <typename T>
+void movingAvgAngle<T>::begin()
+{
+    m_buffer = new T[m_interval];
+}
+
+// add a new reading and return the new moving average
+template <typename T>
+T movingAvgAngle<T>::reading(T newReading)
+{
+    double s = std::sin(newReading);
+    double c = std::cos(newReading);
+
+    // add each new data point to the sum until the m_readings array is filled
+    if (m_nbrReadings < m_interval) {
+        ++m_nbrReadings;
+        m_sumSin += s;
+        m_sumCos += c;
+
+    } else {
+        // array is filled; subtract the oldest data point and add the new one
+        m_sumSin = m_sumSin - sin(m_buffer[m_next]) + s;
+        m_sumCos = m_sumCos - cos(m_buffer[m_next]) + c;
+    }
+    m_buffer[m_next] = newReading;
+
+    if (++m_next >= m_interval)
+        m_next = 0;
+
+    return getAvg();
+}
+
+// return the current moving average
+template <typename T>
+T movingAvgAngle<T>::getAvg()
+{
+    if (m_nbrReadings == 0)
+        return 0;
+
+    // check size of vector; if near 0, set it to 0
+    const double len = m_sumSin * m_sumSin + m_sumCos * m_sumCos;
+    if (len < 1e-24)
+        return 0.0;   // average direction undefined  
+
+    return static_cast<T>(to2PI(std::atan2(m_sumSin, m_sumCos)));
+}
+
+// return the current moving average for a subset of the data, the most recent nPoints readings.
+// for invalid values of nPoints, return zero.
+template <typename T>
+T movingAvgAngle<T>::getAvg(int nPoints)
+{
+    if (nPoints < 1 || nPoints > m_interval || nPoints > m_nbrReadings)
+        return 0;
+
+    double sumSin = 0.0;
+    double sumCos = 0.0;
+
+    int i = m_next;
+    for (int n = 0; n < nPoints; ++n) {
+        if (i == 0)
+            i = m_interval - 1;
+        else
+            --i;
+
+        sumSin += std::sin(m_buffer[i]);
+        sumCos += std::cos(m_buffer[i]);
+    }
+
+    // check size of vector; if near 0, set it to 0
+    const double len = m_sumSin * m_sumSin + m_sumCos * m_sumCos;
+    if (len < 1e-24)
+        return 0.0;   // average direction undefined  
+
+    return static_cast<T>(to2PI(std::atan2(sumSin, sumCos)));
+}
+
+// start the moving average over again
+template <typename T>
+void movingAvgAngle<T>::reset()
+{
+    m_nbrReadings = 0;
+    m_sumSin = 0;
+    m_sumCos = 0;
+    m_next = 0;
+}
+
+template <typename T>
+T movingAvgAngle<T>::to2PI(T a)
+{
+    a = fmod(a, M_TWOPI);
+    if (a < 0.0) {
+        a += M_TWOPI;
+    }
+    return a;
+}
+// --- End class MovingAvgAngle ---------------
