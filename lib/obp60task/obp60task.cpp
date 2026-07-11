@@ -851,7 +851,7 @@ void OBP60Task(GwApi *api){
 
                 // ulong startHandl = millis();
                 trueWind.handleWinds(calcTrueWnds); // calculate true wind data from apparent wind values
-                trueWind.setMaxWs(); // maintain MaxTWS value in any case; invalid TWS value is considered automatically
+                trueWind.setMaxWs(); // maintain MaxTWS value in any case; invalid TWS value is considered automatically; MaxAWS is provided by core gateway if AWS is available
                 calibrationDataList.handleCalibration(&boatValues); // Process calibration for all boat data in <calibrationDataList>
                 hstryBufferList.handleHstryBufs(useSimuData, commonData); // Handle history buffers for certain boat data for charts and other usage
                 // LOG_DEBUG(GwLog::DEBUG, "obp60task: data handling: %d ms", millis() - startHandl);

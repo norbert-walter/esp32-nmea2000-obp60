@@ -120,6 +120,12 @@ private:
     static constexpr double DBL_MAX = std::numeric_limits<double>::max();
     GwLog* logger;
 
+    // specify missing data for boat value type AWD; AWD is not available in core gateway and need to be specified here
+    void defineAWD() {
+        awdBVal->setFormat("formatCourse");
+        awdBVal->valid = false;
+    }
+
 public:
     WindUtils(BoatValueList* boatValues, GwLog* log)
         : logger(log)
@@ -130,13 +136,15 @@ public:
         twdBVal = boatValues->findValueOrCreate("TWD");
         awaBVal = boatValues->findValueOrCreate("AWA");
         awsBVal = boatValues->findValueOrCreate("AWS");
-        awdBVal = boatValues->findValueOrCreate("AWD");
         cogBVal = boatValues->findValueOrCreate("COG");
         stwBVal = boatValues->findValueOrCreate("STW");
         sogBVal = boatValues->findValueOrCreate("SOG");
         hdtBVal = boatValues->findValueOrCreate("HDT");
         hdmBVal = boatValues->findValueOrCreate("HDM");
         varBVal = boatValues->findValueOrCreate("VAR");
+
+        awdBVal = boatValues->findValueOrCreate("AWD");
+        defineAWD();
     };
 
     static double to2PI(double a);
