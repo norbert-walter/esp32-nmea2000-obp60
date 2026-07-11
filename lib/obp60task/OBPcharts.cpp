@@ -420,8 +420,8 @@ void Chart::drawChartLines(const ChrtDir chrtDir, const int8_t chrtIntv, const d
         if (i >= timAxis - 1) {
             oldChrtIntv = 0; // force reset of buffer start and number of values to show in next display loop
 
-            if (chrtDataFmt == WIND) { // degree of course or wind
-                if (allLeft || allRight || chrtRng == M_PI) {
+            if (chrtDataFmt == WIND) {
+                if (allLeft || allRight || chrtRng == M_TWOPI) { // check if we should recalculate chart axis middle value
                     recalcRngMid = true;
                 }
                 // LOG_DEBUG(GwLog::DEBUG, "OBPcharts: WIND chart end: timAxis: %d, i: %d, bufStart: %d, numBufVals: %d, recalcRngCntr: %d, allLeft: %d, allRight: %d", timAxis, i, bufStart,
