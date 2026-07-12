@@ -19,17 +19,6 @@ private:
         HALF
     };
 
-    static constexpr char HORIZONTAL = 'H';
-    static constexpr char VERTICAL = 'V';
-    static constexpr int8_t FULL_SIZE = 0;
-    static constexpr int8_t HALF_SIZE_TOP = 1;
-    static constexpr int8_t HALF_SIZE_BOTTOM = 2;
-
-    static constexpr bool PRNT_NAME = true;
-    static constexpr bool NO_PRNT_NAME = false;
-    static constexpr bool PRNT_VALUE = true;
-    static constexpr bool NO_PRNT_VALUE = false;
-
     int width; // Screen width
     int height; // Screen height
 
@@ -286,13 +275,13 @@ public:
 
         } else if (pageMode == CHART) { // show only data chart
             if (dataChart) {
-                dataChart->showChrt(HORIZONTAL, FULL_SIZE, dataIntv, PRNT_NAME, PRNT_VALUE, *bValue1);
+                dataChart->showChrt(Chart::HORIZONTAL, Chart::FULL_SIZE, dataIntv, Chart::PRNT_NAME, Chart::PRNT_VALUE, *bValue1);
             }
 
         } else if (pageMode == BOTH) { // show data value and chart
             showData(bValue1, HALF);
             if (dataChart) {
-                dataChart->showChrt(HORIZONTAL, HALF_SIZE_BOTTOM, dataIntv, NO_PRNT_NAME, NO_PRNT_VALUE, *bValue1);
+                dataChart->showChrt(Chart::HORIZONTAL, Chart::HALF_SIZE_RIGHT_BOTTOM, dataIntv, Chart::NO_PRNT_NAME, Chart::NO_PRNT_VALUE, *bValue1);
             }
         }
 

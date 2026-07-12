@@ -11,28 +11,17 @@ class PageWindPlot : public Page {
 private:
     GwLog* logger;
 
-    enum ChartMode {
+    enum PageMode {
         DIRECTION,
         SPEED,
         BOTH
     };
 
-    static constexpr char HORIZONTAL = 'H';
-    static constexpr char VERTICAL = 'V';
-    static constexpr int8_t FULL_SIZE = 0;
-    static constexpr int8_t HALF_SIZE_LEFT = 1;
-    static constexpr int8_t HALF_SIZE_RIGHT = 2;
-
-    static constexpr bool PRNT_NAME = true;
-    static constexpr bool NO_PRNT_NAME = false;
-    static constexpr bool PRNT_VALUE = true;
-    static constexpr bool NO_PRNT_VALUE = false;
-
     int width; // Screen width
     int height; // Screen height
 
     bool keylock = false; // Keylock
-    ChartMode chrtMode = DIRECTION;
+    PageMode chrtMode = DIRECTION;
     bool showTruW = true; // Show true wind or apparent wind in chart area
     bool oldShowTruW = false; // remember recent user selection of wind data type
 
@@ -226,7 +215,7 @@ public:
 
         if (chrtMode == DIRECTION) {
             if (wdChart) {
-                wdChart->showChrt(VERTICAL, FULL_SIZE, dataIntv, PRNT_NAME, PRNT_VALUE, *wdBVal);
+                wdChart->showChrt(Chart::VERTICAL, Chart::FULL_SIZE, dataIntv, Chart::PRNT_NAME, Chart::PRNT_VALUE, *wdBVal);
             }
 
         } else if (chrtMode == SPEED) {
@@ -234,15 +223,15 @@ public:
                 if (dataIntv == 8) {
                     dataIntv = 1; // horizontal charts show max. 4 x 7 min. only; no factor 8 multiplier
                 }
-                wsChart->showChrt(HORIZONTAL, FULL_SIZE, dataIntv, PRNT_NAME, PRNT_VALUE, *wsBVal);
+                wsChart->showChrt(Chart::HORIZONTAL, Chart::FULL_SIZE, dataIntv, Chart::PRNT_NAME, Chart::PRNT_VALUE, *wsBVal);
             }
 
         } else if (chrtMode == BOTH) {
             if (wdChart) {
-                wdChart->showChrt(VERTICAL, HALF_SIZE_LEFT, dataIntv, PRNT_NAME, PRNT_VALUE, *wdBVal);
+                wdChart->showChrt(Chart::VERTICAL, Chart::HALF_SIZE_LEFT_TOP, dataIntv, Chart::NO_PRNT_NAME, Chart::PRNT_VALUE, *wdBVal);
             }
             if (wsChart) {
-                wsChart->showChrt(VERTICAL, HALF_SIZE_RIGHT, dataIntv, PRNT_NAME, PRNT_VALUE, *wsBVal);
+                wsChart->showChrt(Chart::VERTICAL, Chart::HALF_SIZE_RIGHT_BOTTOM, dataIntv, Chart::NO_PRNT_NAME, Chart::PRNT_VALUE, *wsBVal);
             }
         }
 

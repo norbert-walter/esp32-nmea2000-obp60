@@ -1,23 +1,6 @@
-#include "OBPRingBuffer.h"
 #include <algorithm>
 #include <limits>
 #include <cmath>
-
-template <typename T>
-void RingBuffer<T>::initCommon()
-{
-    NUMLIMIT_LOW = std::numeric_limits<T>::lowest();
-    NUMLIMIT_HIGH = std::numeric_limits<T>::max();
-    dataName = "";
-    dataFmt = "";
-    updFreq = -1;
-    mltplr = 1;
-    BUFMIN_VAL = static_cast<double>(NUMLIMIT_LOW);
-    BUFMAX_VAL = static_cast<double>(NUMLIMIT_HIGH);
-    lowest = BUFMIN_VAL;
-    highest = BUFMAX_VAL;
-    bufLocker = xSemaphoreCreateMutex();
-}
 
 template <typename T>
 RingBuffer<T>::RingBuffer()
@@ -47,6 +30,22 @@ RingBuffer<T>::RingBuffer(size_t size)
     buffer.resize(size, NUMLIMIT_HIGH); // NUMLIMIT_HIGH indicate invalid values
 }
 
+template <typename T>
+void RingBuffer<T>::initCommon()
+{
+    NUMLIMIT_LOW = std::numeric_limits<T>::lowest();
+    NUMLIMIT_HIGH = std::numeric_limits<T>::max();
+    dataName = "";
+    dataFmt = "";
+    updFreq = -1;
+    mltplr = 1;
+    BUFMIN_VAL = static_cast<double>(NUMLIMIT_LOW);
+    BUFMAX_VAL = static_cast<double>(NUMLIMIT_HIGH);
+    lowest = BUFMIN_VAL;
+    highest = BUFMAX_VAL;
+    bufLocker = xSemaphoreCreateMutex();
+}
+
 // Specify meta data of buffer content
 template <typename T>
 void RingBuffer<T>::setMetaData(String name, String format, int updateFrequency, double multiplier, double minValue, double maxValue)
@@ -59,7 +58,7 @@ void RingBuffer<T>::setMetaData(String name, String format, int updateFrequency,
     BUFMIN_VAL = static_cast<double>(NUMLIMIT_LOW) / mltplr; // lowest possible buffer value; converted to external view
     BUFMAX_VAL = static_cast<double>(NUMLIMIT_HIGH) / mltplr; // highest possible buffer value; converted to external view
     lowest = std::max(BUFMIN_VAL, minValue); // low value range, set by user
-    highest = std::min(std::nextafter(BUFMAX_VAL, -std::numeric_limits<double>::infinity()), maxValue); // high value range, set by user; max. is 1 tick smaller than BUFMAX_VAL
+    highest = std::min(std::nextafter(BUFMAX_VAL, -std::numeric_limits<double>::infinity()), maxValue); // high value range, set by user; maximum is 1 tick lower than BUFMAX_VAL
 }
 
 // Specify format of buffer content
@@ -285,7 +284,7 @@ double RingBuffer<T>::getMedian(size_t amount) const
         amount = count;
 
     // Create a temporary vector with current valid elements
-    std::vector<T> temp;
+    std::vector<double> temp;
     temp.reserve(amount);
 
     for (size_t i = 0; i < amount; i++) {
@@ -295,14 +294,82 @@ double RingBuffer<T>::getMedian(size_t amount) const
     // Sort to find median
     std::sort(temp.begin(), temp.end());
 
+    if (temp[0] == BUFMAX_VAL) { // 1st element of sorted vector is already BUFMAX_VAL -> only invalid entries in buffer, so we return invalid value
+       return BUFMAX_VAL;
+    }
+
     if (amount % 2 == 1) {
         // Odd number of elements
-        return static_cast<double>(temp[amount / 2]);
+        return temp[amount / 2];
     } else {
         // Even number of elements - return average of middle two
-        // Note: For integer types, this truncates. For floating point, it's exact.
-        return static_cast<double>((temp[amount / 2 - 1] + temp[amount / 2]) / 2);
+        return (temp[amount / 2 - 1] + temp[amount / 2]) / 2;
     }
+}
+
+// Get mid value of circle (degree) values of buffer
+template <typename T>
+double RingBuffer<T>::getCircularMid() const
+{
+    return getCircularMid(getCurrentSize());
+}
+
+// Get mid value of circle (degree) values of the last <amount> values of buffer
+template <typename T>
+double RingBuffer<T>::getCircularMid(size_t amount) const
+{
+    if (isEmpty() || amount <= 0) {
+        return BUFMAX_VAL;
+    }
+    if (amount > count)
+        amount = count;
+
+    std::vector<double> a;
+    // Create a temporary vector with current valid elements
+    std::vector<double> temp;
+    temp.reserve(amount);
+
+    for (size_t i = 0; i < amount; i++) {
+        temp.push_back(get(count - 1 - i));
+    }
+
+    // Sort to find largest gap
+    std::sort(temp.begin(), temp.end());
+
+    if (temp[0] == BUFMAX_VAL) { // 1st element of sorted vector is already BUFMAX_VAL -> only invalid entries in buffer, so we return invalid value
+       return BUFMAX_VAL;
+    }
+
+    // Find the largest gap
+    double largestGap = BUFMIN_VAL;
+    std::size_t gapIndex = 0;
+
+    for (std::size_t i = 0; i < temp.size(); ++i)
+    {
+        std::size_t next = (i + 1) % temp.size();
+
+        double gap;
+        if (next == 0)
+            gap = (temp[0] + M_TWOPI) - temp[i];
+        else
+            gap = temp[next] - temp[i];
+
+        if (gap > largestGap)
+        {
+            largestGap = gap;
+            gapIndex = i;
+        }
+    }
+
+    double start = temp[(gapIndex + 1) % temp.size()]; // Start of occupied arc = first angle after largest gap
+    double arcWidth = M_TWOPI - largestGap; // Width of occupied arc
+    arcWidth = start + arcWidth / 2.0;
+    arcWidth = fmod(arcWidth, M_TWOPI);
+    if (arcWidth < 0.0) {
+        arcWidth += M_TWOPI;
+    }
+
+    return arcWidth; // Midpoint of occupied arc
 }
 
 // Get the buffer capacity (maximum size)

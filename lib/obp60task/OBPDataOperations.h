@@ -3,6 +3,7 @@
 #include "OBPRingBuffer.h"
 #include "Pagedata.h"
 #include "obp60task.h"
+#include "movingAvg.h"
 #include <map>
 #include <unordered_map>
 
@@ -36,10 +37,14 @@ public:
 class HstryBuf {
 private:
     RingBuffer<uint16_t> hstryBuf; // Circular buffer to store history values
+    movingAvg<double> chrtAvg {6}; // Store average of the last 6 chart values if chart gradient shall be smoothed
+    movingAvgAngle<double> chrtAvgAngle {6}; // Store average of the last 6 chart values (angle data) if chart gradient shall be smoothed
     String boatDataName;
     double hstryMin;
     double hstryMax;
     bool metaDataDefined = false;
+    bool smoothing = false;
+    bool isTypeAngle = false;
     unsigned long bufUpdateTime;
     GwApi::BoatValue* boatValue;
     GwLog* logger;
@@ -47,7 +52,7 @@ private:
     friend class HstryBuffers;
 
 public:
-    HstryBuf(const String& name, int size, BoatValueList* boatValues, GwLog* log);
+    HstryBuf(const String& name, const int size, BoatValueList* boatValues, const bool smooth, GwLog* log);
     bool hasMetaData() const { return metaDataDefined; };
     void init(const String& format, int updFreq, double mltplr, double minVal, double maxVal);
     void add(double value);
@@ -101,7 +106,7 @@ private:
 
 public:
     HstryBuffers(int size, BoatValueList* boatValues, GwLog* log);
-    void addBuffer(const String& name);
+    void addBuffer(const String& name, const bool smooth);
     void handleHstryBufs(bool useSimuData, CommonData& common);
     RingBuffer<uint16_t>* getBuffer(const String& name);
 };
@@ -115,6 +120,12 @@ private:
     static constexpr double DBL_MAX = std::numeric_limits<double>::max();
     GwLog* logger;
 
+    // specify missing data for boat value type AWD; AWD is not available in core gateway and need to be specified here
+    void defineAWD() {
+        awdBVal->setFormat("formatCourse");
+        awdBVal->valid = false;
+    }
+
 public:
     WindUtils(BoatValueList* boatValues, GwLog* log)
         : logger(log)
@@ -125,19 +136,22 @@ public:
         twdBVal = boatValues->findValueOrCreate("TWD");
         awaBVal = boatValues->findValueOrCreate("AWA");
         awsBVal = boatValues->findValueOrCreate("AWS");
-        awdBVal = boatValues->findValueOrCreate("AWD");
         cogBVal = boatValues->findValueOrCreate("COG");
         stwBVal = boatValues->findValueOrCreate("STW");
         sogBVal = boatValues->findValueOrCreate("SOG");
         hdtBVal = boatValues->findValueOrCreate("HDT");
         hdmBVal = boatValues->findValueOrCreate("HDM");
         varBVal = boatValues->findValueOrCreate("VAR");
+
+        awdBVal = boatValues->findValueOrCreate("AWD");
+        defineAWD();
     };
 
     static double to2PI(double a);
     static double toPI(double a);
     static double to360(double a);
     static double to180(double a);
+
     void toCart(const double* phi, const double* r, double* x, double* y);
     void toPol(const double* x, const double* y, double* phi, double* r);
     void addPolar(const double* phi1, const double* r1,

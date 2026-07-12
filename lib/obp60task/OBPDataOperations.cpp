@@ -107,7 +107,6 @@ void CalibrationData::readConfig(GwConfigHandler* config)
         LOG_DEBUG(GwLog::LOG, "Calibration data type added: %s, offset: %f, slope: %f, smoothing: %f", instance.c_str(),
             calibrationMap[instance].offset, calibrationMap[instance].slope, calibrationMap[instance].smooth);
     }
-    // LOG_DEBUG(GwLog::LOG, "All calibration data read");
 }
 
 // Handle calibrationMap and calibrate all boat data values
@@ -208,15 +207,14 @@ bool CalibrationData::smoothInstance(GwApi::BoatValue* boatDataValue)
     calibrationMap[instance].value = dataValue; // store the smoothed value in the list
     calibrationMap[instance].isCalibrated = true;
 
-    // LOG_DEBUG(GwLog::DEBUG, "BoatDataCalibration: %s: smooth: %f, oldValue: %f, result: %f", instance.c_str(), smoothFactor, oldValue, calibrationMap[instance].value);
-
     return true;
 }
 // --- End Class CalibrationData ---------------
 
 // --- Class HstryBuf ---------------
-HstryBuf::HstryBuf(const String& name, int size, BoatValueList* boatValues, GwLog* log)
+HstryBuf::HstryBuf(const String& name, const int size, BoatValueList* boatValues, const bool smooth, GwLog* log)
     : logger(log)
+    , smoothing(smooth)
     , boatDataName(name)
 {
     hstryBuf.resize(size);
@@ -232,23 +230,42 @@ void HstryBuf::init(const String& format, int updFreq, double mltplr, double min
     if (!boatValue->valid) {
         boatValue->value = std::numeric_limits<double>::max(); // mark current value invalid
     }
+
+    isTypeAngle = format == "formatCourse" || format == "formatWind" || format == "formatRot";
+    // initialize correct variant of buffer for averaging history data
+    if (smoothing) {
+        if (isTypeAngle) {
+            chrtAvgAngle.begin();
+        } else {
+            chrtAvg.begin();
+        }
+    }
 }
 
-void HstryBuf::add(double value)
+void HstryBuf::add(const double value)
 {
+    double bufVal = value;
+
     if (value >= hstryMin && value <= hstryMax) {
-        hstryBuf.add(value);
+
+        if (smoothing) {
+            if (isTypeAngle) {
+                bufVal = chrtAvgAngle.reading(value);
+            } else {
+                bufVal = chrtAvg.reading(value);
+            }
+        }
+
+        hstryBuf.add(bufVal);
         // LOG_DEBUG(GwLog::DEBUG, "HstryBuf::add:  name: %s, value: %.3f, value buffer: %.3f", hstryBuf.getName(), value, hstryBuf.getLast());
     }
 }
 
-void HstryBuf::handle(bool useSimuData, CommonData& common)
+void HstryBuf::handle(const bool useSimuData, CommonData& common)
 {
     if ((millis() - bufUpdateTime) >= hstryBuf.getUpdFreq()) {
 
         bufUpdateTime = millis();
-        // LOG_DEBUG(GwLog::DEBUG, "HstryBuf::handle:  name: %s, frequency: %d, format: %s, value: %.3f", hstryBuf.getName(), hstryBuf.getUpdFreq(),
-        //     boatValue->getFormat().c_str(), boatValue->value);
 
         if (boatValue->valid) {
             add(boatValue->value);
@@ -262,20 +279,20 @@ void HstryBuf::handle(bool useSimuData, CommonData& common)
             double simSIValue = formatValue(tmpBVal.get(), common).value; // simulated value is generated at <formatValue>; here: retreive SI value
             add(simSIValue);
         } else {
-            // here we will add invalid (DBL_MAX) value; this will mark periods of missing data in buffer together with a timestamp
+            // TODO: add invalid (DBL_MAX) value; this will mark periods of missing data in buffer together with a timestamp
         }
     }
 }
 // --- End Class HstryBuf ---------------
 
 // --- Class HstryBuffers ---------------
-HstryBuffers::HstryBuffers(int size, BoatValueList* boatValues, GwLog* log)
+HstryBuffers::HstryBuffers(const int size, BoatValueList* boatValues, GwLog* log)
     : size(size)
     , boatValueList(boatValues)
     , logger(log) { };
 
 // Create history buffer for boat data type
-void HstryBuffers::addBuffer(const String& name)
+void HstryBuffers::addBuffer(const String& name, const bool smooth)
 {
     if (HstryBuffers::getBuffer(name) != nullptr) { // buffer for this data type already exists
         return;
@@ -288,8 +305,9 @@ void HstryBuffers::addBuffer(const String& name)
     }
 
     // create buffer only; initialization with metadata can only be done later after boat data have been updated first time
-    hstryBuffers[name] = std::unique_ptr<HstryBuf>(new HstryBuf(name, size, boatValueList, logger));
-    LOG_DEBUG(GwLog::DEBUG, "HstryBuffers: new buffer added: name: %s", name);
+    hstryBuffers[name] = std::unique_ptr<HstryBuf>(new HstryBuf(name, size, boatValueList, smooth, logger));
+
+    LOG_DEBUG(GwLog::LOG, "HstryBuffers: new buffer added: name: %s", name);
 }
 
 // Handle all registered history buffers
@@ -301,7 +319,7 @@ void HstryBuffers::handleHstryBufs(bool useSimuData, CommonData& common)
         if (!buf->hasMetaData()) { // meta data initialization for buffer has not been done before
 
             String valueFormat = boatValueList->findValueOrCreate(buf->boatDataName)->getFormat().c_str();
-            LOG_DEBUG(GwLog::DEBUG, "HstryBuffers: value name: %s, format: %s", boatValueList->findValueOrCreate(buf->boatDataName)->getName().c_str(), valueFormat);
+            // LOG_DEBUG(GwLog::DEBUG, "HstryBuffers: value name: %s, format: %s", boatValueList->findValueOrCreate(buf->boatDataName)->getName().c_str(), valueFormat);
 
             if (!valueFormat.isEmpty()) {
                 String lookupKey = buf->boatDataName;
@@ -321,7 +339,7 @@ void HstryBuffers::handleHstryBufs(bool useSimuData, CommonData& common)
 
                 hstryBuffers[buf->boatDataName]->init(valueFormat, hstryUpdFreq, mltplr, bufferMinVal, bufferMaxVal);
                 buf->metaDataDefined = true;
-                LOG_DEBUG(GwLog::DEBUG, "HstryBuffers::handleBufs: metadata added: name: %s, format: %s, frequency: %d, multiplier: %f, min value: %.2f, max value: %.2f", buf->boatDataName, valueFormat, hstryUpdFreq,
+                LOG_DEBUG(GwLog::LOG, "HstryBuffers::handleBufs: metadata added: name: %s, format: %s, frequency: %d, multiplier: %f, min value: %.2f, max value: %.2f", buf->boatDataName, valueFormat, hstryUpdFreq,
                     mltplr, bufferMinVal, bufferMaxVal);
             }
         }
@@ -433,8 +451,6 @@ bool WindUtils::calcHDT(const double* hdmVal, const double* varVal, const double
         *hdtVal = DBL_MAX; // Cannot calculate HDT without valid HDM or HDM+VAR or COG
         return false;
     }
-    // LOG_DEBUG(GwLog::DEBUG, "WindUtils:calcHDT: HDT: %.1f, HDM %.1f, VAR %.1f, COG %.1f, SOG %.1f", *hdtVal * RAD_TO_DEG, *hdmVal * RAD_TO_DEG, *varVal * RAD_TO_DEG,
-    //      *cogVal * RAD_TO_DEG, *sogVal * 3.6 / 1.852);
 
     return true;
 }
@@ -482,7 +498,6 @@ bool WindUtils::calcTrueWinds(const double* awaVal, const double* awsVal, const 
         // If STW and SOG are not available, we cannot calculate true wind
         return false;
     }
-    // LOG_DEBUG(GwLog::DEBUG, "WindUtils:calcTrueWinds: HDT: %.1f, CTW %.1f, STW %.1f", *hdtVal * RAD_TO_DEG, ctw * RAD_TO_DEG, stw * 3.6 / 1.852);
 
     calcTwdSA(awaVal, awsVal, awd, &ctw, &stw, hdtVal, &twa, &tws, &twd);
     *twaVal = twa;
@@ -501,7 +516,7 @@ void WindUtils::setMaxWs(GwApi::BoatValue* wsMaxValue, const double* wsVal)
         maxWs = *wsVal;
     }
 
-    if ( maxWs > 0.0 && maxWs >= wsMaxValue->value) {
+    if (maxWs > 0.0 && maxWs >= wsMaxValue->value) {
         wsMaxValue->value = maxWs; // overwrite core gateway value each second again with own user task value if that value is larger
         wsMaxValue->valid = true;
     }
@@ -532,30 +547,28 @@ bool WindUtils::handleWinds(bool calcWinds)
         return false;
     }
 
-    // calculate AWD if not existing and if possible
+    // calculate AWD if it does not exist yet and AWA is available
     if (!awdBVal->valid) {
         if (calcWD(&awaVal, &hdtVal, &awd)) {
             awdBVal->value = awd;
             awdBVal->valid = true;
         } else {
             awdBVal->valid = false;
-            return false;
         }
     }
 
-    if (!calcWinds) { // don't calculate true winds if not set in configuration
-        return twCalculated;
-    }
-
-    // calculate TWD if not existing and if possible
+    // calculate TWD if it does not exist yet and TWA is available
     if (!twdBVal->valid) {
-        // calculate TWD if it does not exist yet and TWA is available
         if (calcWD(&twaVal, &hdtVal, &twd)) {
             twdBVal->value = twd;
             twdBVal->valid = true;
         } else {
             twdBVal->valid = false;
         }
+    }
+
+    if (!calcWinds) { // don't calculate true winds from apparent winds if not set in configuration
+        return twCalculated;
     }
 
     if (!twaBVal->valid || !twsBVal->valid || !twdBVal->valid) {
@@ -576,8 +589,6 @@ bool WindUtils::handleWinds(bool calcWinds)
             }
         }
     }
-    // LOG_DEBUG(GwLog::DEBUG, "WindUtils:handleWinds: twCalculated %d, TWD %.1f, TWA %.1f, TWS %.2f kn, AWD: %.1f", twCalculated, twdBVal->value * RAD_TO_DEG,
-    //     twaBVal->value * RAD_TO_DEG, twsBVal->value * 3.6 / 1.852, awdBVal->value * RAD_TO_DEG);
 
     return twCalculated;
 }
