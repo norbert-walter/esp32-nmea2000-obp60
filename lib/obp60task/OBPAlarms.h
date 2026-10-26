@@ -72,6 +72,7 @@ public:
 private:
     static constexpr size_t MAX_ALARMS = 5; // max. number of alarm definitions
     static constexpr const char* POSITION_ALARM = "GPSP"; // boat data value name for position alarms selected by LAT or LON type
+    static constexpr const char* TIME_ALARM = "ALMT"; // alarm value for time alarms, fed from GPST or RTC
     static constexpr double NO_HIGH_LIMIT =  std::numeric_limits<double>::infinity();
     static constexpr double NO_LOW_LIMIT  = -std::numeric_limits<double>::infinity();
     static const std::map<BoatDataFmt, double> hysteresis;

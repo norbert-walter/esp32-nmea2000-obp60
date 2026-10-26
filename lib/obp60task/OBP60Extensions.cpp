@@ -472,7 +472,7 @@ static void buzzerTaskFunction(void* pvParameters) {
 
             ledcSetup(0, frequency, 8);                 // Ch 0, ferquency in Hz, 8 Bit resolution of PWM
             ledcWrite(0, uint(power * 1.28));           // 50% duty cycle are 100%
-            vTaskDelay(pdMS_TO_TICKS(duration));        // blocks only rhis task, not the caller
+            vTaskDelay(pdMS_TO_TICKS(duration));
             ledcWrite(0, 0);                            // 0% duty cycle are 0%
         }
         delay(20); // interrupt two subsequent buzzer calls
@@ -484,8 +484,7 @@ static void buzzerTaskFunction(void* pvParameters) {
 void createBuzzerTask() {
 #if defined BOARD_OBP60S3
     buzzerQueue = xQueueCreate(4, sizeof(BuzzerRequest));
-    xTaskCreatePinnedToCore(buzzerTaskFunction, "BuzzerTask", 1288, nullptr, 1, nullptr, 1);
-    // pin to core 1 in order not to disturb wifi and asyncwebserver on core 0
+    xTaskCreate(buzzerTaskFunction, "BuzzerTask", 1288, nullptr, 3, nullptr);
 #endif
 }
 

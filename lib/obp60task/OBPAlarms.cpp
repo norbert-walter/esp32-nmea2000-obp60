@@ -212,6 +212,9 @@ void Alarms::readConfig(GwConfigHandler* config)
         if (instance == "LAT" || instance == "LON") {
             a.boatValue = m_boatValueList.findValueOrCreate(POSITION_ALARM); // For positions, we want to store the distance to the reference location as the alarm value
             a.boatValue->setFormat("mtr2nm");
+        } else if (instance == "GPST") {
+            a.boatValue = m_boatValueList.findValueOrCreate(TIME_ALARM);
+            a.boatValue->setFormat("formatTime");
         } else {
             a.boatValue = m_boatValueList.findValueOrCreate(instance);
         }
@@ -267,7 +270,7 @@ void Alarms::initAlarmData()
             continue;
         }
         if (a.boatValue->getFormat().isEmpty()) {
-            continue;                              // boat data not available yet, try next second
+            continue;                              // boat data not available yet, try next time
         }
         BoatDataFmt fmt = initFormat(a.boatValue);
         if (fmt == Alarms::BoatDataFmt::OTHER) {
@@ -418,6 +421,21 @@ void Alarms::checkAlarms()
                 alarm.boatValue->valid = false;
             }
         }
+
+        // For time alarms, use GPS time; fall back to RTC if there is no GPS time
+        if (alarm.format == BoatDataFmt::TIME && alarm.alarmSet) {
+            GwApi::BoatValue* bValueGpst = m_boatValueList.findValueOrCreate("GPST");
+            if (bValueGpst->valid) {
+                alarm.boatValue->value = bValueGpst->value;
+                alarm.boatValue->valid = true;
+            } else if (m_common->data.rtcValid) {
+                const tm& rtcT = m_common->data.rtcTime;
+                alarm.boatValue->value = rtcT.tm_hour * 3600.0 + rtcT.tm_min * 60.0 + rtcT.tm_sec;
+                alarm.boatValue->valid = true;
+            } else {
+                alarm.boatValue->valid = false;
+            }
+        }        
 
         if (!alarm.alarmSet || !alarm.boatValue->valid) {
             clearPending();
