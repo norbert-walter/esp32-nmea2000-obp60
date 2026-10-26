@@ -484,7 +484,7 @@ static void buzzerTaskFunction(void* pvParameters) {
 void createBuzzerTask() {
 #if defined BOARD_OBP60S3
     buzzerQueue = xQueueCreate(4, sizeof(BuzzerRequest));
-    xTaskCreate(buzzerTaskFunction, "BuzzerTask", 1288, nullptr, 3, nullptr);
+    xTaskCreate(buzzerTaskFunction, "BuzzerTask", 1288, nullptr, 4, nullptr); // run buzzer task with slightly higher priority for constant beeps
 #endif
 }
 

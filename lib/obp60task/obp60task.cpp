@@ -27,7 +27,7 @@
 #include "OBP60QRWiFi.h"                // Functions lib for WiFi QR code
 #include "OBPSensorTask.h"              // Functions lib for sensor data
 
- // Global vars
+// Global vars
 bool initComplete = false;      // Initialization complete
 int taskRunCounter = 0;         // Task couter for loop section
 
@@ -434,7 +434,7 @@ void OBP60Task(GwApi *api){
     
     // Init pages
     int numPages=1;
-    PageStruct pages[MAX_PAGE_NUMBER + 1];
+    PageStruct pages[MAX_PAGE_NUMBER];
     // Set start page
     int pageNumber = int(api->getConfig()->getConfigItem(api->getConfig()->startPage,true)->asInt()) - 1;
 
@@ -886,7 +886,7 @@ void OBP60Task(GwApi *api){
                 }
                 // LOG_DEBUG(GwLog::DEBUG, "obp60task: alarm count: %d", boatAlarms.countAlarms());
 
-                 // Clear display
+                // Clear display
                 // getdisplay().fillRect(0, 0, getdisplay().width(), getdisplay().height(), commonData.bgcolor);
                 getdisplay().fillScreen(commonData.bgcolor);  // Clear display
 
