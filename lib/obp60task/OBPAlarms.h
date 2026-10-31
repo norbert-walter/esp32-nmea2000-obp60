@@ -32,6 +32,7 @@ public:
         XTE,
         TEMP,
         TIME,
+        ATTITUDE,
         PRESSUREBAR,
         PRESSUREPA,
         HUMIDITY,

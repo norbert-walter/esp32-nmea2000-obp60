@@ -29,6 +29,7 @@ const std::map<Alarms::BoatDataFmt, double> Alarms::hysteresis = {
     { BoatDataFmt::DISTANCE, 20 },
     { BoatDataFmt::TEMP, 5.0 },
     { BoatDataFmt::TIME, 0.0 },
+    { BoatDataFmt::ATTITUDE, 5 * DEG_TO_RAD },
     { BoatDataFmt::PRESSUREBAR, 0.3 }, // pressure in bar
     { BoatDataFmt::PRESSUREPA, 30000.0 }, // pressure in Pa
     { BoatDataFmt::HUMIDITY, 1.0 }, // humidity in percent
@@ -55,7 +56,7 @@ static Alarms::BoatDataFmt initFormat(GwApi::BoatValue* bValue)
         return Alarms::BoatDataFmt::WIND;
     } else if (format == "formatDepth") {
         return Alarms::BoatDataFmt::DEPTH;
-    } else if (format == "formatRot" || format.startsWith("formatXdr:A")) {
+    } else if (format == "formatRot") {
         return Alarms::BoatDataFmt::ROTATION;
     } else if (format == "formatLatitude") {
         return Alarms::BoatDataFmt::LAT;
@@ -71,6 +72,8 @@ static Alarms::BoatDataFmt initFormat(GwApi::BoatValue* bValue)
         return Alarms::BoatDataFmt::TEMP;
     } else if (format == "formatTime") {
         return Alarms::BoatDataFmt::TIME;
+     } else if (format.startsWith("formatXdr:A")) {
+        return Alarms::BoatDataFmt::ATTITUDE;
     } else if (format == "formatXdr:P:B") {
         return Alarms::BoatDataFmt::PRESSUREBAR;
     } else if (format == "formatXdr:P:P") {
@@ -602,12 +605,11 @@ double Alarms::convertValueToSI(const double value, const BoatDataFmt valueForma
         result *= DEG_TO_RAD;
         result = WindUtils::to2PI(result);
 
-    } else if (valueFormat == Alarms::BoatDataFmt::WIND || valueFormat == Alarms::BoatDataFmt::ROTATION) {
+    } else if (valueFormat == Alarms::BoatDataFmt::WIND) {
         result *= DEG_TO_RAD;
         result = WindUtils::to2PI(result);
-        // result = WindUtils::toPI(result); // currently wind angles are stored in [0..2PI] format
 
-    } else if (valueFormat == Alarms::BoatDataFmt::ROTATION) {
+    } else if (valueFormat == Alarms::BoatDataFmt::ROTATION || valueFormat == Alarms::BoatDataFmt::ATTITUDE) {
         result *= DEG_TO_RAD;
         result = WindUtils::toPI(result);
 
