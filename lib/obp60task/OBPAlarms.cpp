@@ -596,7 +596,7 @@ double Alarms::convertValueToSI(const double value, const BoatDataFmt valueForma
         } else if (windspeedFormat == "kn") {
             result /= 1.94384; // Convert kn to m/s
         } else if (windspeedFormat == "bft") {
-            result *= 2 + (value / 2); // Convert Bft to m/s (approx) -> to be improved
+            result = 0.836 * std::pow(value, 1.5); // WMO standard empirical formula: v = 0.836 * B^1.5
         } else { // value is given in SI m/s
             // No conversion needed
         }
