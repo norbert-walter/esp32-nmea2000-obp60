@@ -1,0 +1,248 @@
+diff --git a/lib/api/GwApi.h b/lib/api/GwApi.h
+index 9663a65..901ee5a 100644
+--- a/lib/api/GwApi.h
++++ b/lib/api/GwApi.h
+@@ -139,6 +139,7 @@ class GwApi{
+          * thread safe methods - can directly be called from a user task
+          */
+         virtual GwRequestQueue *getQueue()=0;
++        virtual QueueHandle_t getKbQueue()=0;
+         virtual void sendN2kMessage(const tN2kMsg &msg, bool convert=true)=0;
+         /**
+          * deprecated - sourceId will be ignored
+diff --git a/lib/config/GwConverterConfig.h b/lib/config/GwConverterConfig.h
+index 25ca39e..569bc34 100644
+--- a/lib/config/GwConverterConfig.h
++++ b/lib/config/GwConverterConfig.h
+@@ -71,6 +71,7 @@ class GwConverterConfig{
+       int rmcInterval=1000;
+       int rmcCheckTime=4000;
+       int winst312=256;
++      int swBankInstance=0;
+       bool unmappedXdr=false;
+       unsigned long xdrTimeout=60000;
+       std::vector<WindMapping> windMappings;
+@@ -113,4 +114,4 @@ class GwConverterConfig{
+ 
+ 
+   };
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/lib/nmea2kto0183/N2kDataToNMEA0183.cpp b/lib/nmea2kto0183/N2kDataToNMEA0183.cpp
+index 0c0e68c..508d849 100644
+--- a/lib/nmea2kto0183/N2kDataToNMEA0183.cpp
++++ b/lib/nmea2kto0183/N2kDataToNMEA0183.cpp
+@@ -1449,6 +1449,29 @@ private:
+         finalizeXdr();
+     }
+ 
++    void Handle127502(const tN2kMsg &msg){
++        // switch bank control / receive remote key strokes
++        unsigned char instance=0;
++        tN2kBinaryStatus bankstatus;
++        LOG_DEBUG(GwLog::LOG,"received switch bank control");
++        // check if we are addressed and our configured instance is used
++        if (! ParseN2kPGN127502(msg,instance,bankstatus)) {
++            LOG_DEBUG(GwLog::DEBUG,"unable to parse PGN %d",msg.PGN);
++            return;
++        }
++        if (! (instance == config.swBankInstance)) {
++            LOG_DEBUG(GwLog::DEBUG,"switch bank instance #%d ignored",instance);
++            return;
++        }
++        for (uint8_t i=1; i<=28; i++) {
++            tN2kOnOff keystatus = N2kGetStatusOnBinaryStatus(bankstatus, i);
++            if (keystatus == 1) {
++                // key pressed: send key to queue
++                xQueueSend(keyboardQueue, &i, 0);
++            }
++        }
++    }
++
+     void registerConverters()
+     {
+       //register all converter functions
+@@ -1484,6 +1507,7 @@ private:
+       converters.registerConverter(127488UL, &N2kToNMEA0183Functions::Handle127488);
+       converters.registerConverter(130316UL, &N2kToNMEA0183Functions::Handle130316);
+       converters.registerConverter(127257UL, &N2kToNMEA0183Functions::Handle127257);
++      converters.registerConverter(127502UL, &N2kToNMEA0183Functions::Handle127502);
+ #define HANDLE_AIS
+ #ifdef HANDLE_AIS
+       converters.registerConverter(129038UL, &N2kToNMEA0183Functions::HandleAISClassAPosReport);  // AIS Class A Position Report, Message Type 1
+@@ -1498,13 +1522,15 @@ private:
+   public:
+     N2kToNMEA0183Functions(GwLog *logger, GwBoatData *boatData, 
+         SendNMEA0183MessageCallback callback,
+-        String talkerId, GwXDRMappings *xdrMappings, const GwConverterConfig &cfg) 
++        String talkerId, GwXDRMappings *xdrMappings, const GwConverterConfig &cfg,
++        QueueHandle_t kbQueue)
+     : N2kDataToNMEA0183(logger, boatData, callback,talkerId)
+     {
+         this->logger = logger;
+         this->boatData = boatData;
+         this->xdrMappings=xdrMappings;
+         this->config=cfg;
++        this->keyboardQueue=kbQueue;
+         registerConverters();
+     }
+     virtual void loop(unsigned long lastExtRmc) override
+@@ -1520,8 +1546,8 @@ private:
+ 
+ N2kDataToNMEA0183* N2kDataToNMEA0183::create(GwLog *logger, GwBoatData *boatData, 
+     SendNMEA0183MessageCallback callback, String talkerId, GwXDRMappings *xdrMappings,
+-    const GwConverterConfig &cfg){
+-  LOG_DEBUG(GwLog::LOG,"creating N2kToNMEA0183");    
+-  return new N2kToNMEA0183Functions(logger,boatData,callback, talkerId,xdrMappings,cfg);
++    const GwConverterConfig &cfg, QueueHandle_t kbQueue){
++  LOG_DEBUG(GwLog::LOG,"creating N2kToNMEA0183");
++  return new N2kToNMEA0183Functions(logger,boatData,callback, talkerId,xdrMappings,cfg,kbQueue);
+ }
+ //*****************************************************************************
+diff --git a/lib/nmea2kto0183/N2kDataToNMEA0183.h b/lib/nmea2kto0183/N2kDataToNMEA0183.h
+index 61e8ee2..f7d8c75 100644
+--- a/lib/nmea2kto0183/N2kDataToNMEA0183.h
++++ b/lib/nmea2kto0183/N2kDataToNMEA0183.h
+@@ -43,6 +43,7 @@ protected:
+   GwBoatData *boatData;
+   int sourceId=0;
+   char talkerId[3];
++  QueueHandle_t keyboardQueue;
+   SendNMEA0183MessageCallback sendNMEA0183MessageCallback;
+   void SendMessage(const tNMEA0183Msg &NMEA0183Msg);
+   N2kDataToNMEA0183(GwLog *logger, GwBoatData *boatData,  
+@@ -50,7 +51,8 @@ protected:
+ 
+ public:
+   static N2kDataToNMEA0183* create(GwLog *logger, GwBoatData *boatData,  SendNMEA0183MessageCallback callback, 
+-    String talkerId, GwXDRMappings *xdrMappings,const GwConverterConfig &cfg);
++    String talkerId, GwXDRMappings *xdrMappings,const GwConverterConfig &cfg,
++    QueueHandle_t kbQueue);
+   virtual void HandleMsg(const tN2kMsg &N2kMsg, int sourceId) = 0;
+   virtual void loop(unsigned long lastRmc);
+   virtual ~N2kDataToNMEA0183(){}
+@@ -59,4 +61,4 @@ public:
+   virtual void toJson(GwJsonDocument *json)=0;
+   virtual String handledKeys()=0;
+ };
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/lib/obp60task/obp60task.cpp b/lib/obp60task/obp60task.cpp
+index 6a24c3b..81ac5e3 100644
+--- a/lib/obp60task/obp60task.cpp
++++ b/lib/obp60task/obp60task.cpp
+@@ -360,6 +360,8 @@ void OBP60Task(GwApi *api){
+ 
+     tN2kMsg N2kMsg;
+ 
++    QueueHandle_t keyboardQueue = api->getKbQueue();
++
+     LOG_DEBUG(GwLog::LOG,"obp60task started");
+     for (auto it=allPages.pages.begin();it != allPages.pages.end();it++){
+         LOG_DEBUG(GwLog::LOG,"found registered page %s",(*it)->pageName.c_str());
+@@ -645,7 +647,16 @@ void OBP60Task(GwApi *api){
+             if((String(gpsFix) == "GPS Fix Lost" && hdop->value > hdopAccuracy && hdop->valid == true) || (String(gpsFix) == "GPS Fix Lost" && hdop->valid == false)){
+                 setFlashLED(true);
+             }
+-         
++
++            // Keyboard messages from remote
++            uint8_t remotekey = 0;
++            if (xQueueReceive(keyboardQueue, &remotekey, 0) == pdPASS) {
++                LOG_DEBUG(GwLog::LOG, "OBP received remote key: %d", remotekey);
++                // inject into internal keyboard queue
++                int injectkey = static_cast<int>(remotekey);
++                xQueueSend(allParameters.queue, &injectkey, 0);
++            }
++
+             // Check the keyboard message
+             int keyboardMessage=0;
+             while (xQueueReceive(allParameters.queue,&keyboardMessage,0)){
+diff --git a/lib/usercode/GwUserCode.cpp b/lib/usercode/GwUserCode.cpp
+index 90087d4..9d8e3db 100644
+--- a/lib/usercode/GwUserCode.cpp
++++ b/lib/usercode/GwUserCode.cpp
+@@ -189,6 +189,10 @@ public:
+     {
+         return api->getQueue();
+     }
++    virtual QueueHandle_t getKbQueue()
++    {
++        return api->getKbQueue();
++    }
+     virtual void sendN2kMessage(const tN2kMsg &msg,bool convert)
+     {
+         GWSYNCHRONIZED(mainLock);
+diff --git a/src/main.cpp b/src/main.cpp
+index 01fcd32..ff353fb 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -160,6 +160,8 @@ GwCounter<unsigned long> countNMEA2KIn("countNMEA2000in");
+ GwCounter<unsigned long> countNMEA2KOut("countNMEA2000out");
+ GwIntervalRunner timers;
+ 
++QueueHandle_t keyboardQueue = NULL;
++
+ bool checkPass(String hash){
+   return config.checkPass(hash);
+ }
+@@ -271,6 +273,10 @@ public:
+   {
+     return &mainQueue;
+   }
++  virtual QueueHandle_t getKbQueue()
++  {
++    return keyboardQueue;
++  }
+   virtual void sendN2kMessage(const tN2kMsg &msg,bool convert)
+   {
+     handleN2kMessage(msg,sourceId,!convert);
+@@ -868,6 +874,8 @@ void setup() {
+   webserver.begin();
+   xdrMappings.begin();
+   logger.flush();
++  // remote keyboard support
++  keyboardQueue = xQueueCreate(10, sizeof(uint8_t));
+   GwConverterConfig converterConfig;
+   converterConfig.init(&config,&logger);
+   nmea0183Converter= N2kDataToNMEA0183::create(&logger, &boatData, 
+@@ -877,7 +885,8 @@ void setup() {
+     , 
+     config.getString(config.talkerId,String("GP")),
+     &xdrMappings,
+-    converterConfig
++    converterConfig,
++    keyboardQueue
+     );
+ 
+   toN2KConverter= NMEA0183DataToN2K::create(&logger,&boatData,[](const tN2kMsg &msg, int sourceId)->bool{
+diff --git a/web/config.json b/web/config.json
+index 26d3166..bef7790 100644
+--- a/web/config.json
++++ b/web/config.json
+@@ -88,6 +88,16 @@
+         "description":"the brightness of the led (0..255)",
+         "category":"system"
+     },
++    {
++        "name": "swBankInstance",
++        "type": "number",
++        "default": 0,
++        "min": 0,
++        "max": 252,
++        "check": "checkMinMax",
++        "description": "the instance of switch bank to receive data for (0..252)",
++        "category": "system"
++    },
+     {
+         "name": "talkerId",
+         "label": "NMEA0183 ID",
+@@ -1287,4 +1297,4 @@
+         "check": "checkXDR",
+         "category": "xdr30"
+     }
+-]
+\ No newline at end of file
++]
