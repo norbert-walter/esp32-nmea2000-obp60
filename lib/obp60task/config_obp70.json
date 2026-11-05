@@ -1399,7 +1399,7 @@
         "type": "boolean",
         "default": "false",
         "description": "Sound on error [on|off]",
-        "category": "OBP70 Buzzer",
+        "category": "OBP70 Alarm",
         "capabilities": {
             "obp70":"true"
         }
@@ -1410,7 +1410,7 @@
         "type": "boolean",
         "default": "false",
         "description": "Sound on missing or lost GPS fix",
-        "category": "OBP70 Buzzer",
+        "category": "OBP70 Alarm",
         "capabilities": {
             "obp70":"true"
         }
@@ -1421,7 +1421,7 @@
         "type": "boolean",
         "default": "false",
         "description": "Sound on limit violation",
-        "category": "OBP70 Buzzer",
+        "category": "OBP70 Alarm",
         "capabilities": {
             "obp70":"true"
         }
@@ -1435,13 +1435,30 @@
         "list": [
             "Off",
             "Short Single Beep",
-            "Longer Single Beep",
+            "Long Single Beep",
+            "Beep Duration",
             "Beep until Confirmation"
         ],
-        "category": "OBP70 Buzzer",
+        "category": "OBP70 Alarm",
         "capabilities": {
             "obp70":"true"
         }
+    },
+    {
+        "name": "buzzerTime",
+        "label": "Buzzer Duration",
+        "type": "number",
+        "check": "checkMinMax",
+        "min": 1,
+        "max": 60,
+        "default": "10",
+        "description": "Duration of buzzer signal after alarm start [1..60 seconds]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        },
+        "condition":
+            { "buzzerMode": [ "Beep Duration"] }
     },
     {
         "name": "buzzerPower",
@@ -1451,13 +1468,529 @@
         "check": "checkMinMax",
         "min": 0,
         "max": 100,
-        "description": "Buzzer loudness [0...100%]",
-        "category": "OBP70 Buzzer",
+        "description": "Buzzer volume [0..100%]",
+        "category": "OBP70 Alarm",
         "capabilities": {
-            "obp70":"true"
+            "obp70": "true"
         }
-      },
-      {
+    },
+    {
+        "name": "almSuspTime",
+        "label": "Alarm suspend time [min]",
+        "type": "number",
+        "default": "60",
+        "description": "Alarm suspend time after confirmation [minutes]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almInstance1",
+        "label": "Alarm 1 data instance",
+        "type": "boatData",
+        "default": "---",
+        "description": "Data instance for alarm",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almSet1",
+        "label": "Alarm set",
+        "type": "boolean",
+        "default": "false",
+        "description": "Alarm set [on|off]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almLat1",
+        "label": "Target position LAT",
+        "type": "number",
+        "default": "0.00000",
+        "description": "Latitude of target position in decimal degrees.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        },
+        "condition": {
+            "almInstance1": [
+                "LAT",
+                "LON"
+            ]
+        }
+    },
+    {
+        "name": "almLon1",
+        "label": "Target position LON",
+        "type": "number",
+        "default": "0.00000",
+        "description": "Longitude of target position in decimal degrees.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        },
+        "condition": {
+            "almInstance1": [
+                "LAT",
+                "LON"
+            ]
+        }
+    },
+    {
+        "name": "almLowLimit1",
+        "label": "Alarm low threshold",
+        "type": "string",
+        "description": "Low threshold for Alarm.\nFormat is equal to alarm instance format, e.g. metres, knots.\nLeave empty for no threshold.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almHighLimit1",
+        "label": "Alarm high threshold",
+        "type": "string",
+        "description": "High threshold for Alarm.\nFormat is equal to alarm instance format, e.g. [m]etres, [kn]ots.\nAlarm time is [hh:mm] format.\nLeave empty for no threshold.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "snzTime1",
+        "label": "Alarm snooze time [sec]",
+        "type": "number",
+        "default": "300",
+        "description": "Alarm snooze time [seconds]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almDelay1",
+        "label": "Alarm delay time [sec]",
+        "type": "number",
+        "check": "checkMinMax",
+        "min": 0,
+        "max": 10,
+        "default": "0",
+        "description": "Time for delayed start of Alarm after threshold violation [0..10 seconds]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almInstance2",
+        "label": "Alarm 2 data instance",
+        "type": "boatData",
+        "default": "---",
+        "description": "Data instance for alarm",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almSet2",
+        "label": "Alarm set",
+        "type": "boolean",
+        "default": "false",
+        "description": "Alarm set [on|off]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almLat2",
+        "label": "Target position LAT",
+        "type": "number",
+        "default": "0.00000",
+        "description": "Latitude of target position in decimal degrees.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        },
+        "condition": {
+            "almInstance2": [
+                "LAT",
+                "LON"
+            ]
+        }
+    },
+    {
+        "name": "almLon2",
+        "label": "Target position LON",
+        "type": "number",
+        "default": "0.00000",
+        "description": "Longitude of target position in decimal degrees.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        },
+        "condition": {
+            "almInstance2": [
+                "LAT",
+                "LON"
+            ]
+        }
+    },
+    {
+        "name": "almLowLimit2",
+        "label": "Alarm low threshold",
+        "type": "string",
+        "description": "Low threshold for Alarm.\nFormat is equal to alarm instance format, e.g. metres, knots.\nLeave empty for no threshold.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almHighLimit2",
+        "label": "Alarm high threshold",
+        "type": "string",
+        "description": "High threshold for Alarm.\nFormat is equal to alarm instance format, e.g. [m]etres, [kn]ots.\nAlarm time is [hh:mm] format.\nLeave empty for no threshold.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "snzTime2",
+        "label": "Alarm snooze time [sec]",
+        "type": "number",
+        "default": "300",
+        "description": "Alarm snooze time [seconds]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almDelay2",
+        "label": "Alarm delay time [sec]",
+        "type": "number",
+        "check": "checkMinMax",
+        "min": 0,
+        "max": 10,
+        "default": "0",
+        "description": "Time for delayed start of Alarm after threshold violation [0..10 seconds]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almInstance3",
+        "label": "Alarm 3 data instance",
+        "type": "boatData",
+        "default": "---",
+        "description": "Data instance for alarm",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almSet3",
+        "label": "Alarm set",
+        "type": "boolean",
+        "default": "false",
+        "description": "Alarm set [on|off]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almLat3",
+        "label": "Target position LAT",
+        "type": "number",
+        "default": "0.00000",
+        "description": "Latitude of target position in decimal degrees.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        },
+        "condition": {
+            "almInstance3": [
+                "LAT",
+                "LON"
+            ]
+        }
+    },
+    {
+        "name": "almLon3",
+        "label": "Target position LON",
+        "type": "number",
+        "default": "0.00000",
+        "description": "Longitude of target position in decimal degrees.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        },
+        "condition": {
+            "almInstance3": [
+                "LAT",
+                "LON"
+            ]
+        }
+    },
+    {
+        "name": "almLowLimit3",
+        "label": "Alarm low threshold",
+        "type": "string",
+        "description": "Low threshold for Alarm.\nFormat is equal to alarm instance format, e.g. metres, knots.\nLeave empty for no threshold.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almHighLimit3",
+        "label": "Alarm high threshold",
+        "type": "string",
+        "description": "High threshold for Alarm.\nFormat is equal to alarm instance format, e.g. [m]etres, [kn]ots.\nAlarm time is [hh:mm] format.\nLeave empty for no threshold.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "snzTime3",
+        "label": "Alarm snooze time [sec]",
+        "type": "number",
+        "default": "300",
+        "description": "Alarm snooze time [seconds]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almDelay3",
+        "label": "Alarm delay time [sec]",
+        "type": "number",
+        "check": "checkMinMax",
+        "min": 0,
+        "max": 10,
+        "default": "0",
+        "description": "Time for delayed start of Alarm after threshold violation [0..10 seconds]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almInstance4",
+        "label": "Alarm 4 data instance",
+        "type": "boatData",
+        "default": "---",
+        "description": "Data instance for alarm",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almSet4",
+        "label": "Alarm set",
+        "type": "boolean",
+        "default": "false",
+        "description": "Alarm set [on|off]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almLat4",
+        "label": "Target position LAT",
+        "type": "number",
+        "default": "0.00000",
+        "description": "Latitude of target position in decimal degrees.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        },
+        "condition": {
+            "almInstance4": [
+                "LAT",
+                "LON"
+            ]
+        }
+    },
+    {
+        "name": "almLon4",
+        "label": "Target position LON",
+        "type": "number",
+        "default": "0.00000",
+        "description": "Longitude of target position in decimal degrees.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        },
+        "condition": {
+            "almInstance4": [
+                "LAT",
+                "LON"
+            ]
+        }
+    },
+    {
+        "name": "almLowLimit4",
+        "label": "Alarm low threshold",
+        "type": "string",
+        "description": "Low threshold for Alarm.\nFormat is equal to alarm instance format, e.g. metres, knots.\nLeave empty for no threshold.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almHighLimit4",
+        "label": "Alarm high threshold",
+        "type": "string",
+        "description": "High threshold for Alarm.\nFormat is equal to alarm instance format, e.g. [m]etres, [kn]ots.\nAlarm time is [hh:mm] format.\nLeave empty for no threshold.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "snzTime4",
+        "label": "Alarm snooze time [sec]",
+        "type": "number",
+        "default": "300",
+        "description": "Alarm snooze time [seconds]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almDelay4",
+        "label": "Alarm delay time [sec]",
+        "type": "number",
+        "check": "checkMinMax",
+        "min": 0,
+        "max": 10,
+        "default": "0",
+        "description": "Time for delayed start of Alarm after threshold violation [0..10 seconds]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almInstance5",
+        "label": "Alarm 5 data instance",
+        "type": "boatData",
+        "default": "---",
+        "description": "Data instance for alarm",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almSet5",
+        "label": "Alarm set",
+        "type": "boolean",
+        "default": "false",
+        "description": "Alarm set [on|off]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almLat5",
+        "label": "Target position LAT",
+        "type": "number",
+        "default": "0.00000",
+        "description": "Latitude of target position in decimal degrees.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        },
+        "condition": {
+            "almInstance5": [
+                "LAT",
+                "LON"
+            ]
+        }
+    },
+    {
+        "name": "almLon5",
+        "label": "Target position LON",
+        "type": "number",
+        "default": "0.00000",
+        "description": "Longitude of target position in decimal degrees.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        },
+        "condition": {
+            "almInstance5": [
+                "LAT",
+                "LON"
+            ]
+        }
+    },
+    {
+        "name": "almLowLimit5",
+        "label": "Alarm low threshold",
+        "type": "string",
+        "description": "Low threshold for Alarm.\nFormat is equal to alarm instance format, e.g. metres, knots.\nLeave empty for no threshold.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almHighLimit5",
+        "label": "Alarm high threshold",
+        "type": "string",
+        "description": "High threshold for Alarm.\nFormat is equal to alarm instance format, e.g. [m]etres, [kn]ots.\nAlarm time is [hh:mm] format.\nLeave empty for no threshold.",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "snzTime5",
+        "label": "Alarm snooze time [sec]",
+        "type": "number",
+        "default": "300",
+        "description": "Alarm snooze time [seconds]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
+        "name": "almDelay5",
+        "label": "Alarm delay time [sec]",
+        "type": "number",
+        "check": "checkMinMax",
+        "min": 0,
+        "max": 10,
+        "default": "0",
+        "description": "Time for delayed start of Alarm after threshold violation [0..10 seconds]",
+        "category": "OBP70 Alarm",
+        "capabilities": {
+            "obp70": "true"
+        }
+    },
+    {
         "name": "visiblePages",
         "label": "Number of Pages",
         "type": "number",

@@ -450,29 +450,56 @@ void setBlinkingLED(bool status){
 }
 
 uint buzzerpower = 50;
+static QueueHandle_t buzzerQueue;
+struct BuzzerRequest {
+    uint frequency;
+    uint duration;
+};
 
-void buzzer(uint frequency, uint duration){
-    if(frequency > 8000){   // Max 8000Hz
-        frequency = 8000;
-    }
-    if(buzzerpower > 100){  // Max 100%
-        buzzerpower = 100;
-    }
-    if(duration > 1000){    // Max 1000ms
-        duration = 1000;
-    }
-    
+// buzzer function in separate task to avoid blocking of main task
+static void buzzerTaskFunction(void* pvParameters) {
     // Using LED PWM function for sound generation
     pinMode(OBP_BUZZER, OUTPUT);
-    ledcSetup(0, frequency, 8);         // Ch 0, ferquency in Hz, 8 Bit resolution of PWM
+    ledcSetup(0, 2000, 8);        // channel/resolution fixed once; frequency reset per request below
     ledcAttachPin(OBP_BUZZER, 0);
-    ledcWrite(0, uint(buzzerpower * 1.28));    // 50% duty cycle are 100%
-    delay(duration);
-    ledcWrite(0, 0);                    // 0% duty cycle are 0%
+
+    BuzzerRequest req;
+    while (true) {
+        if (xQueueReceive(buzzerQueue, &req, portMAX_DELAY) == pdTRUE) {
+            uint frequency = min(req.frequency, uint(8000)); // Max 8000Hz
+            uint duration  = min(req.duration, uint(1000));  // Max 1000ms
+            uint power = min(buzzerpower, uint(100));        // Max 100%
+
+            ledcSetup(0, frequency, 8);                 // Ch 0, ferquency in Hz, 8 Bit resolution of PWM
+            ledcWrite(0, uint(power * 1.28));           // 50% duty cycle are 100%
+            vTaskDelay(pdMS_TO_TICKS(duration));
+            ledcWrite(0, 0);                            // 0% duty cycle are 0%
+        }
+        delay(20); // interrupt two subsequent buzzer calls
+    }
+}
+
+// Create buzzer task; call once at setup
+// xTask requires ~1.700 bytes of memory
+void createBuzzerTask() {
+#if defined BOARD_OBP60S3
+    buzzerQueue = xQueueCreate(4, sizeof(BuzzerRequest));
+    xTaskCreate(buzzerTaskFunction, "BuzzerTask", 1288, nullptr, 4, nullptr); // run buzzer task with slightly higher priority for constant beeps
+#endif
+}
+
+// Ring buzzer
+void buzzer(uint frequency, uint duration) {
+#if defined BOARD_OBP60S3
+    BuzzerRequest req{ frequency, duration };
+    if (buzzerQueue) {
+        xQueueSend(buzzerQueue, &req, 0);   // 0 = don't wait if queue's full, just drop the request
+    }
+#endif
 }
 
 void setBuzzerPower(uint power){
-    buzzerpower = power;
+    buzzerpower = min(power, uint(100));
 }
 
 // Delete xdr prefix from string

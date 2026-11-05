@@ -5,7 +5,6 @@
 #include "OBP60Hardware.h"
   
 // Global vars
-
 // Touch keypad over ESP32 touch sensor inputs  
 
 int keypad[9];          // Raw data array for keys
@@ -141,7 +140,7 @@ void initKeys(CommonData &commonData) {
       }
       // Detect a very short keynumber (10ms)
       if (millis() > starttime + 10 && keycode == keycodeold && keylock == true) {
-        logger->logDebug(GwLog::LOG,"Very short 20ms key touch: %d", keycode);
+        // logger->logDebug(GwLog::DEBUG,"Very short 20ms key touch: %d", keycode);
 
         // Process only valid keys
         if(keycode == 1 || keycode == 4 || keycode == 5 || keycode == 6){
@@ -159,7 +158,7 @@ void initKeys(CommonData &commonData) {
       }
       // Detect a short keynumber (200ms)
       if (keyoff == false && millis() > starttime + 200 && keycode == keycodeold && keylock == true) {
-        logger->logDebug(GwLog::LOG,"Short 200ms key touch: %d", keycode);
+        // logger->logDebug(GwLog::DEBUG,"Short 200ms key touch: %d", keycode);
         keystatus = keycode;
         keycode = 0;
         keycodeold = 0;
@@ -171,9 +170,9 @@ void initKeys(CommonData &commonData) {
       }
     }
 
-    // System page with key 5 and 4 in fast series
+    // System page with key 4 and 5 in fast series
     if (keycode2 == 5 && keycodeold2 == 4) {
-        logger->logDebug(GwLog::LOG,"Keycode for system page");
+        // logger->logDebug(GwLog::DEBUG,"Keycode for system page");
       keycode = 0;
       keycodeold = 0;
       keycode2 = 0;
@@ -184,6 +183,7 @@ void initKeys(CommonData &commonData) {
       buzzer(TONE4, 50);
       delay(30);
       buzzer(TONE4, 50);
+      delay(keydelay);
     }
 
     // Key lock with key 1 and 6 or 6 and 1 in fast series
@@ -209,6 +209,7 @@ void initKeys(CommonData &commonData) {
       keystatus = 9;
       buzzer(TONE3, 150);
       buzzer(TONE4, 150);
+      delay(keydelay);
     }
 
     // Detect swipe left
@@ -221,6 +222,7 @@ void initKeys(CommonData &commonData) {
       keystatus = 10;
       buzzer(TONE4, 150);
       buzzer(TONE3, 150);
+      delay(keydelay);
     }
 
     // Reset keylock after release
@@ -286,7 +288,7 @@ void initKeys(CommonData &commonData) {
         }
         // Copy keycode
         keycodeold = keycode;
-        while(readSensorpads() > 0){} // Wait for pad release
+        while(readSensorpads() > 0){ delay(10); } // Wait for pad release
         delay(keydelay);
       }
     }

@@ -735,7 +735,9 @@ void setFlashLED(bool status);                  // Set flash LED
 void blinkingFlashLED();                        // Blinking function for flash LED
 void setBlinkingLED(bool on);                   // Set blinking flash LED active
 
-void buzzer(uint frequency, uint duration);     // Buzzer function
+
+void createBuzzerTask();                        // Create separate buzzer task
+void buzzer(uint frequency, uint duration);     // Ring buzzer
 void setBuzzerPower(uint power);                // Set buzzer power
 
 String xdrDelete(String input);                 // Delete xdr prefix from string
@@ -767,6 +769,8 @@ void startLedTask(GwApi *api);
 void displayRudderPosition(int rudderPosition, uint8_t rangeDeg, uint16_t cx, uint16_t cy, uint16_t fg, uint16_t bg);
 
 void doImageRequest(GwApi *api, int *pageno, const PageStruct pages[MAX_PAGE_NUMBER], AsyncWebServerRequest *request);
+
+double distanceBetweenCoordinates(double lat1, double lon1, double lat2, double lon2); // Calculate the distance between two geo coordinates
 
 // Icons
 #define icon_width 16

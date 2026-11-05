@@ -9,7 +9,9 @@
 
 typedef std::vector<GwApi::BoatValue *> ValueList;
 
+// Forward declaration for availability of class data structures
 class HstryBuffers;
+class Alarms;
 
 typedef struct{
   GwApi *api;
@@ -108,6 +110,7 @@ typedef struct{
     TouchKeyData keydata[6];
     BacklightData backlight;
     AlarmData alarm;
+    Alarms* alarmList;
     GwApi::BoatValue *time = nullptr;
     GwApi::BoatValue *date = nullptr;
     uint16_t fgcolor;
@@ -204,9 +207,9 @@ typedef struct{
 
 // Formatter for boat values
 FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata);
-FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool ignoreSimuDataSetting);
+FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, bool ignoreSimuDataSetting, String setPrecision = "");
 FormattedData formatValue(GwApi::BoatValue *value, CommonData &commondata, String setPrecision);
-String formatValue(const double &value, const String &vFormat, CommonData &commondata);
+String formatValue(const double &value, const String &format, CommonData &commondata, const bool dsegFont = true);
 
 // Helper method for conversion of any data value from SI to user defined format (defined in OBP60Formatter)
 double convertValue(const double &value, const String &format, CommonData &commondata);
