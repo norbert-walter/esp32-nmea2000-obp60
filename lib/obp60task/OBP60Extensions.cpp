@@ -690,7 +690,7 @@ static void printBoatValueImpl(const String &sBoatValue, const int16_t x, const 
     // Measure integer part
     int16_t ix1, iy1;
     uint16_t iw, ih;
-    display.setFont(mainFont);
+    getdisplay().setFont(mainFont);
     displayGetTextBounds(integerPart, 0, 0, &ix1, &iy1, &iw, &ih, dsegAdjust);
     intW = ix1 + iw;
 
@@ -699,7 +699,7 @@ static void printBoatValueImpl(const String &sBoatValue, const int16_t x, const 
     if (dot != -1 && decimalPart.length() > 0) {
         int16_t dx1, dy1;
         uint16_t dw, dh;
-        display.setFont(smallDecs ? decimalFont : mainFont);
+        getdisplay().setFont(smallDecs ? decimalFont : mainFont);
         displayGetTextBounds(decimalPart, 0, 0, &dx1, &dy1, &dw, &dh, dsegAdjust);
         decW = dx1 + dw;
     }
@@ -721,13 +721,13 @@ static void printBoatValueImpl(const String &sBoatValue, const int16_t x, const 
     decimalLeftX = startX + intW;
 
     // Draw integer part
-    display.setFont(mainFont);
+    getdisplay().setFont(mainFont);
     getdisplay().setCursor(startX, y);
     getdisplay().print(integerPart);
 
     // Draw decimal part only when present
     if (dot != -1 && decimalPart.length() > 0) {
-        display.setFont(smallDecs ? decimalFont : mainFont);
+        getdisplay().setFont(smallDecs ? decimalFont : mainFont);
         getdisplay().setCursor(decimalLeftX, y);
         getdisplay().print(decimalPart);
     }
